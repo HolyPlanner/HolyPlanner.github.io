@@ -1,0 +1,24 @@
+{
+    "name": "HolyPlanner",
+    "short_name": "HolyP",
+    "start_url": "./",
+    "scope": "./",
+    "display": "standalone",
+    "orientation": "portrait",
+    "background_color": "#FFF1D6",
+    "theme_color": "#000000",
+    "icons": [
+        {
+            "src": "icons/iconbig.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "maskable"
+        },
+        {
+            "src": "icons/iconbig.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any"
+        }
+    ]
+}
