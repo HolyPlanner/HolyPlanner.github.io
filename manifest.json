@@ -1,6 +1,6 @@
 {
     "name": "HolyPlanner",
-    "short_name": "HolyP",
+    "short_name": "HolyPlanner",
     "start_url": "./",
     "scope": "./",
     "display": "standalone",
