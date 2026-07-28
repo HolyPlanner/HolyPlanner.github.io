@@ -7,6 +7,13 @@
     <link rel="manifest" href="manifest.json"> <!-- Lie le fichier manifeste JSON pour permettre l'installation de l'application (PWA) -->
     
     <style> /* Ouvre la section de style CSS interne à la page */
+        /* Règle globale : supprime le flash de surbrillance bleu/gris au
+           toucher sur TOUS les boutons du site (au lieu de le répéter
+           bouton par bouton). Les déclarations individuelles existantes
+           plus bas restent inoffensives (même valeur, pas de conflit). */
+        button {
+            -webkit-tap-highlight-color: transparent;
+        }
         /* =========================================== */
         /* 00. Déclaration des variables et constantes */
         /* =========================================== */
@@ -21,11 +28,14 @@
             --text-color-second: #A7D3C1; /* Couleur de police secondaire */
             --btn-accent-bg: #2E7D7A; /* Couleur de fond des boutons accent (Violet profond) */
             --titre-h1-color: #264653; /*Couleur vert foncé pour les titres de niveau h1*/
-            /* Icône de la flèche de retour (.btn-back), en SVG plutôt qu'en caractère Unicode :
-               rendu net et identique sur toutes les plateformes (contrairement à &#8592; qui varie
-               selon la police système). "currentColor" fait suivre la couleur définie par
-               .btn-back (var(--text-color-white)) automatiquement. */
-            --icon-back: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='15 18 9 12 15 6'%3E%3C/polyline%3E%3C/svg%3E");
+            /* Icône de la flèche de retour (.btn-back), en fichier SVG local
+               (icons/back-arrow.svg) plutôt qu'en caractère Unicode ou en data-URI
+               encodée : plus lisible et modifiable directement dans le fichier SVG.
+               Couleur figée à l'intérieur du fichier (#264653, = --text-color-white
+               actuelle) : currentColor ne s'hérite pas de façon fiable pour une image
+               chargée via url(), contrairement à un <svg> inline dans le HTML. Si tu
+               changes --text-color-white plus tard, pense à éditer aussi le fichier SVG. */
+            --icon-back: url("icons/back-arrow.svg");
             }
 
         /* ============================ */
@@ -60,7 +70,7 @@
                 /* Début du style appliqué à l'en-tête sémantique */
                 header { /* Sélectionne l'élément header */
                     padding: 20px; /* Ajoute un espacement intérieur de 20 pixels sur tous les côtés du header */
-                    padding-top: 148px; /* Ajoute un espacement intérieur supplémentaire de 148 pixels uniquement en haut */
+                    padding-top: clamp(60px, 18vh, 148px); /* Fluide selon la hauteur d'écran : jusqu'à 148px sur grand écran, réduit sur les écrans bas (paysage, petits téléphones) */
                     text-align: center; /* Centre horizontalement le contenu inline (comme le h1) dans le header */
                     /*box-shadow: 0 2px 5px rgba(0,0,0,0.2); /* Ajoute une ombre portée légère sous le header pour le détacher du fond */
                     width: 100%; /* S'assure que le header prend toute la largeur disponible */
@@ -117,7 +127,7 @@
                 /* --- STYLE DES CHAMPS DE SAISIE (INPUTS) --- */
                 .input-field {
                     /* --- Dimensions et Forme --- */
-                    width: 250px; /* Définit la largeur fixe du champ de saisie à 250 pixels */
+                    width: min(250px, 80vw); /* Largeur fixe, mais ne dépasse jamais 80% de l'écran sur les appareils très étroits */
                     height: 50px; /* Définit la hauteur fixe du champ de saisie à 50 pixels */
                     border-radius: 15px; /* Arrondit les coins du champ avec un rayon de 15 pixels */
                     /* --- Bordure et Ombre --- */
@@ -135,7 +145,10 @@
                 }
 
                 /* --- Effet au Focus (Quand on clique dans le champ) --- */
-                    input:focus {
+                /* "textarea" ajouté : seule .day-textarea (bloc Activités) en est une dans
+                   toute l'app, donc ça l'aligne sur l'effet des inputs (bloc Logement) sans
+                   risque d'affecter autre chose. */
+                    input:focus, textarea:focus {
                     transform: scale(1.02);
                     box-shadow: 0 0 0 4px var(--btn-bg-color);
                     border-color: var(--text-color-white);
@@ -151,6 +164,14 @@
                     font-weight: bold; /* Met le texte indicatif en gras */
                 }
 
+                /* Placeholders des champs de .day-detail-screen (Transport/Logement/Activités) :
+                   gris clair plutôt que var(--text-color-white) (en réalité un vert foncé, voir
+                   :root), pour bien les distinguer visuellement d'un champ déjà rempli. Ne
+                   modifie que ce contexte, le reste du site garde la règle ::placeholder ci-dessus. */
+                .day-detail-screen ::placeholder {
+                    color: #9e9e9e;
+                }
+
                 /* --- GESTION DU DERNIER CHAMP --- */
                 .input-field:last-child {
                     /* Sélectionne uniquement le dernier élément de la liste des champs */
@@ -162,7 +183,7 @@
             /* ============================== */
                 .btn-connexion {
                     /* --- Dimensions et Espacement --- */
-                    width: 250px; /* Définit la largeur du bouton à 250 pixels, identique aux champs de saisie */
+                    width: min(250px, 80vw); /* Identique aux champs de saisie : sécurité sur les appareils très étroits */
                     height: 50px; /* Définit la hauteur du bouton à 50 pixels, identique aux champs de saisie */
                     margin-top: 29px; /* Ajoute un espace de 29 pixels au-dessus du bouton pour le séparer du champ précédent */
                     border-radius: 15px; /* Arrondit les coins du bouton avec un rayon de 15 pixels pour un style doux */
@@ -643,6 +664,62 @@
                     box-shadow: 0 10px 25px rgba(0,0,0,0.2); /* Ombre portée */
                 }
 
+                /* --- Sélecteur d'heure personnalisé (remplace <input type="time">) --- */
+                .time-picker-content {
+                    padding: 25px 20px;
+                    align-items: center;
+                    text-align: center;
+                }
+                .time-picker-content h3 {
+                    margin: 0 0 20px 0;
+                    color: var(--titre-h1-color);
+                }
+                .time-picker-selects {
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 8px;
+                    margin-bottom: 25px;
+                }
+                .time-picker-selects select {
+                    font-size: 28px;
+                    font-weight: bold;
+                    font-family: var(--main-font);
+                    color: var(--titre-h1-color);
+                    border: 2px solid var(--text-color-white);
+                    border-radius: 10px;
+                    padding: 8px 10px;
+                    background: transparent;
+                }
+                .time-picker-sep {
+                    font-size: 28px;
+                    font-weight: bold;
+                    color: var(--titre-h1-color);
+                }
+                .time-picker-content .nav-buttons {
+                    width: 100%;
+                }
+                .time-picker-content .nav-buttons button {
+                    flex: 1;
+                    padding: 12px;
+                    border: none;
+                    border-radius: 10px;
+                    font-family: var(--main-font);
+                    font-weight: bold;
+                    font-size: 16px;
+                    cursor: pointer;
+                }
+                #time-picker-confirm {
+                    background-color: var(--btn-accent-bg);
+                    color: var(--text-color-second);
+                    margin-left: 10px;
+                }
+                #time-picker-cancel {
+                    background-color: transparent;
+                    border: 2px solid var(--text-color-white) !important;
+                    color: var(--text-color-white);
+                }
+
                 /* Header de la modale d'ajout */
                     .modal-add-header {
                         display: flex; /* Flexbox horizontal */
@@ -886,11 +963,11 @@
                     }
 
                     .action-btn {
-                        width: 100px; /* Largeur fixe du bouton */
-                        height: 100px; /* Hauteur fixe du bouton (carré de base) */
+                        width: clamp(70px, 22vw, 100px); /* Taille fluide : s'adapte à la largeur de l'écran, jamais plus de 100px */
+                        height: clamp(70px, 22vw, 100px); /* Identique en hauteur pour rester un carré/losange parfait */
                         /*border: 3px solid; /* Bordure de 3px (couleur définie par classe spécifique) */
                         font-family: var(--main-font); /* Applique la variable de police définie */
-                        font-size: 20px; /* Taille de la police du bouton */
+                        font-size: clamp(14px, 4.5vw, 20px); /* Taille de la police du bouton, fluide comme le bouton lui-même */
                         font-weight: bold; /* Texte en gras */
                         cursor: pointer; /* Curseur main au survol */
                         border-radius: 30%; /* Arrondit les angles pour former un losange doux */
@@ -1190,7 +1267,6 @@
                     color: var(--titre-h1-color); /* Applique la couleur bleue de la marque au texte */
                     margin: 0; /* Supprime les marges par défaut pour un alignement précis */
                     font-weight: bold; /* Met le titre en gras */
-                    text-shadow: 2px 1px 2px rgba(0, 0, 0, 0.5); /* Ajoute une ombre portée légère pour la lisibilité */
                 }
 
             /* ============================================== */
@@ -1236,6 +1312,9 @@
                 .day-textarea {
                     resize: none; /* Empêche le redimensionnement manuel */
                     height: 100%; /* Prend toute la hauteur disponible */
+                }
+                [data-time-picker] {
+                    cursor: pointer; /* Indique que le champ ouvre un sélecteur au clic, plutôt que de taper au clavier */
                 }
                 /* BLOC 1 : Transport (Grille de 4 ou 2 lignes selon l'écran) */
                 .travel-block {
@@ -1368,7 +1447,7 @@
                         background: transparent;
                         border: none;
                         border-bottom: 1px solid #ccc; /* Petite ligne sous le chiffre */
-                        font-size: 1.5em;
+                        font-size: 20px;
                         font-weight: bold;
                         color: var(--titre-h1-color);
                         text-align: right;
@@ -1406,6 +1485,8 @@
                         border: 1px solid #ccc;
                         border-radius: 4px;
                         min-width: 0; /* Empêche le champ de dépasser si l'écran est très petit */
+                        text-align: right;
+                        font-size: 20px;
                     }
                     /* Le bouton (ajout recommandé pour l'alignement) */
                     .input-group-tricount button {
@@ -1601,6 +1682,23 @@
                     <button onclick="prepareAction('edit')">Modifier</button>
                     <button onclick="prepareAction('delete')" class="btn-delete">Supprimer</button>
                     <button onclick="closeOptionsMenu()">Annuler</button>
+                </div>
+
+                <!-- MODALE DE SÉLECTION D'HEURE (remplace le picker natif <input type="time">,
+                     non stylable/centrable en CSS sur mobile) -->
+                <div id="time-picker-modal" class="modal-overlay">
+                    <div class="modal-content-add time-picker-content">
+                        <h3>Heure d'arrivée</h3>
+                        <div class="time-picker-selects">
+                            <select id="time-picker-hour" aria-label="Heure"></select>
+                            <span class="time-picker-sep">:</span>
+                            <select id="time-picker-minute" aria-label="Minute"></select>
+                        </div>
+                        <div class="nav-buttons">
+                            <button type="button" id="time-picker-cancel">Annuler</button>
+                            <button type="button" id="time-picker-confirm">Valider</button>
+                        </div>
+                    </div>
                 </div>
                 <!-- Conteneur principal qui prend tout l'espace restant grâce à flex:1 dans le CSS -->
                 <main class="dashboard-content">
@@ -1873,6 +1971,76 @@
                 });
 
             // ========================================
+            // --- SÉLECTEUR D'HEURE PERSONNALISÉ (remplace <input type="time">) ---
+            // ========================================
+                // Le picker natif de <input type="time"> est un composant du système
+                // d'exploitation (mobile) ou du navigateur (desktop) : impossible à
+                // repositionner/centrer en CSS. On le remplace par un champ texte en
+                // lecture seule (data-time-picker) qui ouvre cette modale "maison",
+                // centrée comme n'importe quelle autre modale de l'app (.modal-overlay).
+                let activeTimeInput = null; // Le champ actuellement en cours d'édition
+
+                const timePickerModal = document.getElementById('time-picker-modal');
+                const timePickerHour = document.getElementById('time-picker-hour');
+                const timePickerMinute = document.getElementById('time-picker-minute');
+
+                // Remplit les deux <select> une seule fois au chargement (00-23 / 00-59)
+                for (let h = 0; h < 24; h++) {
+                    const opt = document.createElement('option');
+                    opt.value = String(h).padStart(2, '0');
+                    opt.textContent = String(h).padStart(2, '0');
+                    timePickerHour.appendChild(opt);
+                }
+                for (let m = 0; m < 60; m++) {
+                    const opt = document.createElement('option');
+                    opt.value = String(m).padStart(2, '0');
+                    opt.textContent = String(m).padStart(2, '0');
+                    timePickerMinute.appendChild(opt);
+                }
+
+                // Ouvre la modale au clic sur n'importe quel champ [data-time-picker]
+                // (délégation : couvre aussi les champs créés dynamiquement)
+                document.addEventListener('click', (e) => {
+                    const target = e.target.closest('[data-time-picker]');
+                    if (!target) return;
+
+                    activeTimeInput = target;
+
+                    // Pré-remplit les selects avec la valeur actuelle du champ (ex: "14:30"),
+                    // ou 12:00 par défaut si le champ est vide.
+                    const [h, m] = (target.value || '12:00').split(':');
+                    timePickerHour.value = h || '12';
+                    timePickerMinute.value = m || '00';
+
+                    timePickerModal.classList.add('active');
+                });
+
+                // Valider : reporte "HH:MM" dans le champ d'origine et déclenche un
+                // événement 'input' pour que la sauvegarde existante (collectAndSave,
+                // voir openDayOrgaScreen) se déclenche exactement comme pour une saisie
+                // normale.
+                document.getElementById('time-picker-confirm').addEventListener('click', () => {
+                    if (activeTimeInput) {
+                        activeTimeInput.value = `${timePickerHour.value}:${timePickerMinute.value}`;
+                        activeTimeInput.dispatchEvent(new Event('input', { bubbles: true }));
+                    }
+                    timePickerModal.classList.remove('active');
+                    activeTimeInput = null;
+                });
+
+                // Annuler ou clic sur le fond sombre : ferme sans rien changer
+                document.getElementById('time-picker-cancel').addEventListener('click', () => {
+                    timePickerModal.classList.remove('active');
+                    activeTimeInput = null;
+                });
+                timePickerModal.addEventListener('click', (e) => {
+                    if (e.target === timePickerModal) {
+                        timePickerModal.classList.remove('active');
+                        activeTimeInput = null;
+                    }
+                });
+
+            // ========================================
             // --- LOGIQUE GLOBALE D'INITIALISATION ---
             // ========================================
 
@@ -1882,7 +2050,7 @@
                 // Adresse de ton backend (à héberger sur Ksuite ou ailleurs).
                 // Ce fichier n'implémente PAS le serveur : il suppose une API REST
                 // qui expose les routes utilisées ci-dessous (voir doc fournie à l'utilisateur).
-                const API_BASE_URL = 'https://holyplanner-api.onrender.com';
+                const API_BASE_URL = 'https://TON-DOMAINE.exemple/api';
 
                 // Le token de session reste dans le localStorage : ce n'est pas une donnée
                 // "métier" du voyage (partagée), juste un identifiant d'appareil/session,
@@ -2097,8 +2265,17 @@
                 // =======================================
                 // 00. CHARGER LES DONNÉES SAUVERGARDÉES
                 // =======================================
-                    // a. Charger les cartes de voyages précédemment créés
-                    loadSavedTrips();
+                    // Note : loadSavedTrips() n'est PAS appelée ici. #dashboard-screen est
+                    // masqué tant que l'utilisateur ne s'est pas connecté/inscrit — l'appeler
+                    // avant servait à rien visuellement, et créait un vrai bug : sur Render
+                    // gratuit, le serveur met parfois 30-60s à répondre (réveil après
+                    // inactivité). Si cet appel précoce restait "en vol" pendant que
+                    // l'utilisateur se connectait entretemps (qui déclenche son propre
+                    // loadSavedTrips(), plus rapide), les deux résolutions se chevauchaient
+                    // et affichaient chacune leurs cartes sans se re-nettoyer l'une l'autre
+                    // → doublons visuels alors qu'un seul voyage existe réellement en base.
+                    // loadSavedTrips() est maintenant appelée uniquement après connexion
+                    // réussie (voir plus bas) ou inscription réussie.
 
                     // a-bis. Générer dynamiquement la liste des pays du formulaire
                     populateCountrySelect();
@@ -2475,18 +2652,33 @@
                 // ==============================================================
                 // 10. Fonction pour charger les voyages sauvegardés au démarrage
                 // ==============================================================
+                    let loadSavedTripsCallId = 0; // Compteur : identifie chaque appel pour ignorer les résultats d'un appel devenu obsolète
+
                     async function loadSavedTrips() {
+                        const thisCallId = ++loadSavedTripsCallId;
+
                         // Nettoie les cartes déjà affichées (utile si la fonction est rappelée,
                         // ex: après connexion) pour éviter les doublons visuels.
                         document.querySelectorAll('#trips-grid .trip-card').forEach(card => card.remove());
 
+                        let result;
                         try {
-                            cloudTrips = await apiRequest('GET', '/trips') || []; // Voyages accessibles à l'utilisateur connecté
+                            result = await apiRequest('GET', '/trips') || []; // Voyages accessibles à l'utilisateur connecté
                         } catch (e) {
                             console.error('Impossible de charger les voyages depuis le cloud :', e);
-                            cloudTrips = [];
+                            if (thisCallId === loadSavedTripsCallId) cloudTrips = [];
                             return;
                         }
+
+                        // Si un appel plus récent a démarré entretemps (ex: connexion pendant
+                        // qu'un appel précédent était encore en vol), on abandonne silencieusement
+                        // ce résultat périmé plutôt que de dessiner des cartes en double.
+                        if (thisCallId !== loadSavedTripsCallId) {
+                            console.log('loadSavedTrips() : résultat obsolète ignoré (un appel plus récent a pris le relais).');
+                            return;
+                        }
+
+                        cloudTrips = result;
 
                         if (cloudTrips.length > 0) {
                             cloudTrips.forEach(trip => {
@@ -2954,8 +3146,6 @@
                                 const btnFinance = document.querySelector('.btn-finance');
                                 if (btnFinance) {
                                     btnFinance.onclick = function() {
-                                        // Récupère le nom du voyage courant, affiché dans #trip-home-title
-                                        const currentTripName = document.getElementById('trip-home-title')?.textContent || '';
                                         // 1. Cacher l'écran actuel (trip-home-screen)
                                         const currentScreen = document.getElementById('trip-home-screen');
                                         if(currentScreen) {
@@ -2969,10 +3159,7 @@
                                             financeScreen.style.display = ''; // Efface le style inline
                                             financeScreen.classList.add('active'); // Active le CSS
                                         }
-                                            const financeTitle = financeScreen.querySelector('.day-home-title');
-                                            if (financeTitle && currentTripName) {
-                                                financeTitle.innerText = `Finances ${currentTripName}`;
-                                            }
+                                        // Le titre reste "Finances du Voyage" (statique, défini dans le HTML) : pas de nom de voyage injecté ici.
                                     };
                                 }
                                 // Ajoutez aussi un bouton retour dans le HTML ci-dessus pour revenir en arrière :
@@ -3161,9 +3348,13 @@
                                     const val = (name) => savedData[name] || '';
                                     const isSelected = (name, optionValue) => savedData[name] === optionValue ? 'selected' : '';
 
+                                    // Date exacte de ce jour, à partir de la date de début du voyage
+                                    const templateTrip = cloudTrips.find(t => t.id === tripId);
+                                    const dayLabel = formatDayLabel(templateTrip?.dateStart, dayId);
+
                                     div.innerHTML = `
                                         <div class="day-detail-header">
-                                            <h2 class="day-detail-title">${tripName} - Jour ${dayId}</h2>
+                                            <h2 class="day-detail-title">${dayLabel} - Jour ${dayId}</h2>
                                         </div>
                                         <div class="day-detail-content">
                                             <div class="input-group travel-block" data-day="${dayId}">
@@ -3182,7 +3373,7 @@
 
                                             <div class="input-group lodging-block" data-day="${dayId}">
                                                 <input type="text" placeholder="Nom du logement" class="day-input" name="lodging_name" value="${val('lodging_name')}">
-                                                <input type="time" class="day-input" name="arrival_time" value="${val('arrival_time')}">
+                                                <input type="text" readonly class="day-input" name="arrival_time" placeholder="Heure d'arrivée" data-time-picker value="${val('arrival_time')}">
                                             </div>
 
                                             <div class="activities-block" data-day="${dayId}">
@@ -3287,7 +3478,24 @@
             // FONCTIONS DE L'ECRAN DU JOUR DU VOYAGE
             // ======================================
                 // Fonction pour ouvrir l'écran d'organisation spécifique à un jour (Jour N)
+                // Formate le jour d'un voyage en "abréviation jour dd/mm" (ex: "lun 15/07")
+                // à partir de la date de début du voyage (dateStart) et du numéro du jour (dayId, base 1).
+                function formatDayLabel(dateStartISO, dayId) {
+                    if (!dateStartISO) return `Jour ${dayId}`; // Sécurité si la date de début est inconnue
+                    const date = new Date(dateStartISO);
+                    date.setDate(date.getDate() + (dayId - 1));
+                    // "short" donne par ex. "lun." en français : on retire le point pour rester sur 2-3 lettres
+                    const shortDay = date.toLocaleDateString('fr-FR', { weekday: 'short' }).replace('.', '');
+                    const dd = String(date.getDate()).padStart(2, '0');
+                    const mm = String(date.getMonth() + 1).padStart(2, '0');
+                    return `${shortDay} ${dd}/${mm}`;
+                }
+
                 function openDayOrgaScreen(tripId, dayId, tripName, maxDays) { // Définit la fonction recevant l'ID voyage et le Jour
+                    // Récupère la date de début du voyage pour calculer la date exacte de ce jour
+                    const dayLabelTrip = cloudTrips.find(t => t.id === tripId);
+                    const dayLabel = formatDayLabel(dayLabelTrip?.dateStart, dayId);
+
                     // Création d'un ID unique pour l'écran de ce jour précis (ex: screen-123-5)
                     const screenId = `screen-${tripId}-${dayId}`; 
                     let screen = document.getElementById(screenId); // Tente de trouver un écran déjà existant pour ce jour
@@ -3302,7 +3510,7 @@
                         screen.innerHTML = `
                             <div class="day-detail-header">
                                 <button class="btn-back" data-action="back">&larr;</button>
-                                <h2 class="day-detail-title">${tripName} - Jour ${dayId}</h2>
+                                <h2 class="day-detail-title">${dayLabel} - Jour ${dayId}</h2>
                             </div>
                             <div class="day-detail-content">
                                 <!-- Ajout de data-day-id pour faciliter la récupération des données plus tard -->
@@ -3322,7 +3530,7 @@
                                 
                                 <div class="input-group lodging-block" data-day="${dayId}">
                                     <input type="text" placeholder="Nom du logement" class="day-input" name="lodging_name">
-                                    <input type="time" class="day-input" name="arrival_time"> 
+                                    <input type="text" readonly class="day-input" name="arrival_time" placeholder="Heure d'arrivée" data-time-picker>
                                     <!-- Note: type="time" n'accepte pas l'attribut placeholder dans tous les navigateurs -->
                                 </div>
 

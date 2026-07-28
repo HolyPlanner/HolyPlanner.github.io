@@ -11,7 +11,7 @@
 // ou, pire, de resservir en hors-ligne les données lues par un autre compte
 // sur le même appareil après une déconnexion/reconnexion.
 
-const CACHE_NAME = 'holyplanner-static-v01'; // Change ce numéro de version à chaque déploiement pour forcer le renouvellement du cache
+const CACHE_NAME = 'holyplanner-static-v01.01'; // Change ce numéro de version à chaque déploiement pour forcer le renouvellement du cache
 
 // IMPORTANT : doit correspondre à la valeur de API_BASE_URL dans index.html
 const API_BASE_URL = 'https://holyplanner-api.onrender.com';
