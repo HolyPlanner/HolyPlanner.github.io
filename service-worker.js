@@ -11,19 +11,23 @@
 // ou, pire, de resservir en hors-ligne les données lues par un autre compte
 // sur le même appareil après une déconnexion/reconnexion.
 
-const CACHE_NAME = 'holyplanner-static-v01.01'; // Change ce numéro de version à chaque déploiement pour forcer le renouvellement du cache
+const CACHE_NAME = 'holyplanner-static-v01.03'; // Incrémenté : force le renouvellement du cache chez les utilisateurs déjà installés
 
 // IMPORTANT : doit correspondre à la valeur de API_BASE_URL dans index.html
 const API_BASE_URL = 'https://holyplanner-api.onrender.com';
 
 // Fichiers de l'app shell à mettre en cache dès l'installation.
-// Adapte cette liste à tes fichiers réels (ex: si tu sépares le CSS/JS un
-// jour, ajoute-les ici).
+// ATTENTION : si UN SEUL de ces chemins est incorrect (faute de frappe,
+// fichier inexistant), cache.addAll() échoue EN BLOC et empêche le Service
+// Worker de s'activer -- ce qui bloque aussi l'installation complète de la
+// PWA (WebAPK) côté Chrome Android. Vérifie chaque chemin après toute
+// modification de cette liste, ex: https://holyplanner.github.io/CHEMIN
 const STATIC_ASSETS = [
     './',
-    './index could.html',
+    './index.html',
     './manifest.json',
-    './icons/iconbig.png'
+    './icons/icon-192.png',
+    './icons/icon-512.png'
 ];
 
 // --- INSTALL : met en cache l'app shell ---
