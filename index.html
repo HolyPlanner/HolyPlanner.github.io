@@ -7,6 +7,16 @@
     <link rel="manifest" href="manifest.json"> <!-- Lie le fichier manifeste JSON pour permettre l'installation de l'application (PWA) -->
     
     <style> /* Ouvre la section de style CSS interne à la page */
+        /* Reset global : par défaut, un élément avec width + padding/bordure
+           déborde de sa largeur prévue (comportement CSS natif "content-box").
+           box-sizing:border-box n'était appliqué qu'à certains éléments
+           individuellement dans ce fichier -- ce reset global corrige tous
+           les autres d'un coup, cause la plus probable de la sensation que
+           l'app est "trop grande" sur mobile (déborde légèrement partout,
+           obligeant à dézoomer pour tout voir). */
+        *, *::before, *::after {
+            box-sizing: border-box;
+        }
         /* Règle globale : supprime le flash de surbrillance bleu/gris au
            toucher sur TOUS les boutons du site (au lieu de le répéter
            bouton par bouton). Les déclarations individuelles existantes
@@ -61,6 +71,8 @@
                     min-height: 100vh; /* Force la hauteur minimale du body à 100% de la hauteur de l'écran (viewport height) */
                     display: flex; /* Active le mode d'affichage Flexbox pour faciliter l'alignement des éléments enfants */
                     flex-direction: column; /* Empile les éléments enfants (comme header) verticalement de haut en bas */
+                    overflow-x: hidden; /* Sécurité : masque tout débordement horizontal résiduel plutôt que de forcer un zoom/scroll */
+                    max-width: 100vw; /* Ne dépasse jamais la largeur visible de l'écran */
                 }
                 /* Ferme le bloc de style du body */
 
@@ -665,6 +677,43 @@
                 }
 
                 /* --- Sélecteur d'heure personnalisé (remplace <input type="time">) --- */
+                /* z-index le plus haut du fichier (500) + marge : sans ça, la modale
+                   héritait des 200 de .modal-overlay, en dessous des écrans
+                   (.day-detail-screen etc. montent jusqu'à 500) -> invisible tant
+                   qu'un écran actif avait un z-index supérieur à 200. */
+                #time-picker-modal {
+                    z-index: 600;
+                }
+
+                /* Écran de chargement : mêmes couleurs de fond que le reste de l'app
+                   (var(--couleur-fond-modal), identique au body), affiché entre le clic
+                   sur "Connexion" et la réponse du serveur (peut prendre 30-60s le temps
+                   que le serveur gratuit se réveille). z-index au-dessus de tout, y
+                   compris la modale d'heure (600). */
+                .loading-screen {
+                    display: none;
+                    position: fixed;
+                    top: 0; left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background-color: var(--couleur-fond-modal);
+                    z-index: 700;
+                    justify-content: center;
+                    align-items: center;
+                }
+                .loading-screen.active {
+                    display: flex;
+                }
+                .loading-logo {
+                    width: 40vw; /* Gros logo, fluide selon la largeur d'écran */
+                    max-width: 220px;
+                    height: auto;
+                    animation: loading-pulse 1.4s ease-in-out infinite; /* Petite pulsation pour indiquer que ça charge, sans spinner générique */
+                }
+                @keyframes loading-pulse {
+                    0%, 100% { transform: scale(1); opacity: 1; }
+                    50% { transform: scale(0.92); opacity: 0.75; }
+                }
                 .time-picker-content {
                     padding: 25px 20px;
                     align-items: center;
@@ -1421,13 +1470,14 @@
                         margin: 0 auto; /* Centre la carte horizontalement sur l'écran */
                         text-align: right; /* Aligne le contenu (label + valeur + devise) à droite dans la carte */
                         font-weight: bold;
-                        font-size: 24px;
+                        font-size: 20px; /* Légèrement réduit (était 24px) pour tenir sur une ligne sur mobile */
                         color: var(--titre-h1-color);
+                        white-space: nowrap; /* Empêche tout retour à la ligne du contenu de la carte */
                     }
 
                     .finance-value {
                         display: inline-block;
-                        font-size: 1.5em;
+                        font-size: 20px; /* Fixe plutôt que relatif (1.5em du parent pouvait devenir trop grand) */
                         font-weight: bold;
                         color: var(--titre-h1-color);
                         margin-left: 8px;
@@ -1447,11 +1497,11 @@
                         background: transparent;
                         border: none;
                         border-bottom: 1px solid #ccc; /* Petite ligne sous le chiffre */
-                        font-size: 20px;
+                        font-size: 18px; /* Légèrement réduit (était 20px) */
                         font-weight: bold;
                         color: var(--titre-h1-color);
                         text-align: right;
-                        width: 100px; /* Ajustez selon la longueur des chiffres */
+                        width: 80px; /* Réduit (était 100px) pour laisser de la place au label sur une seule ligne */
                         padding: 5px;
                     }
 
@@ -1621,6 +1671,12 @@
                     <!-- Bouton Connexion --- -->
                     <button class="btn-connexion">Connexion</button> <!-- Crée le bouton de validation du formulaire de connexion -->
                 </div> <!-- Ferme le conteneur de connexion -->
+
+                <!-- ÉCRAN DE CHARGEMENT : affiché le temps que la connexion réponde
+                     (le serveur gratuit peut mettre du temps à se réveiller) -->
+                <div id="loading-screen" class="loading-screen">
+                    <img src="icons/icon-512.png" alt="Chargement..." class="loading-logo">
+                </div>
 
             <!-- ============================ -->
             <!-- b. CONTENEUR DU BOUTON "NEW" -->
@@ -1846,7 +1902,7 @@
                 <!-- En-tête avec bouton retour -->
                 <div class="day-detail-header">
                     <button class="btn-back" id="btn-finance-back">&larr;</button>
-                    <h2 class="day-home-title">Finances du Voyage</h2> <!-- Titre fixe -->
+                    <h2 class="day-home-title">Finances</h2> <!-- Titre fixe -->
                 </div>
 
                 <!-- Contenu principal (à remplir plus tard) -->
@@ -2327,11 +2383,15 @@
                         // --- c. CONNEXION VIA L'API CLOUD (remplace la vérification localStorage) ---
                         // Le serveur est seul responsable de vérifier pseudo+mdp (hashé côté
                         // serveur) et de renvoyer un token de session si c'est correct.
+                        const loadingScreen = document.getElementById('loading-screen');
+                        if (loadingScreen) loadingScreen.classList.add('active');
+
                         try {
                             const data = await apiRequest('POST', '/auth/login', { pseudo, mdp });
                             authToken = data.token;
                             localStorage.setItem('holyplanner_token', authToken);
                         } catch (err) {
+                            if (loadingScreen) loadingScreen.classList.remove('active');
                             alert("Pseudo ou mot de passe incorrect."); // Le serveur renvoie 401 si pseudo inconnu OU mdp faux (on ne précise pas lequel, pour la sécurité)
                             inputMdp.value = "";
                             inputMdp.focus();
@@ -2350,7 +2410,11 @@
                             dashboardScreen.classList.add('active');
 
                             // Recharge la liste des voyages de l'utilisateur maintenant connecté
-                            loadSavedTrips();
+                            await loadSavedTrips();
+
+                            // L'écran de chargement reste affiché jusqu'à ce que les voyages
+                            // soient réellement chargés, pas juste la connexion elle-même.
+                            if (loadingScreen) loadingScreen.classList.remove('active');
                     });
                 // =======================================
                 // 04. LOGIQUE DU BOUTON "NEW" (OUVERTURE)
