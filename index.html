@@ -102,7 +102,7 @@
                 h1 {
                     /* Sélectionne les titres de niveau 1 (h1) */
                     font-family: var(--main-font); /* Applique la variable de police définie */
-                    font-size: clamp(32px, 15vw, 58px); /* Taille fluide : min 32px, idéal 10% de la largeur écran, max 58px */
+                    font-size: clamp(22px, 8vw, 42px); /* Réduit (était clamp(32px, 15vw, 58px)) : "HolyPlanner" (11 lettres) ne tenait plus dans l'espace restant une fois le logo (65px) et le padding du header déduits, la lettre "R" débordait de l'écran */
                     color: var(--titre-h1-color); ; /* Applique la variable de couleur de titre h1 définie */
                     margin: 0; /* Supprime les marges extérieures par défaut autour du titre */
                     text-shadow: 6px 4px 3px #A7D3C1; /* Ajoute une ombre portée au texte */
@@ -309,7 +309,7 @@
                     background-size: 50px auto; /* Ajuste la hauteur du logo à 50px (à modifier selon votre logo) */
                     padding-left: 60px; /* Crée l'espace : largeur du logo (50px) + marge (10px) */
                     font-family: var(--main-font); /* Applique la variable de police définie */
-                    font-size: clamp(32px, 9vw, 58px); /* Taille fluide : min 32px, idéal 10% de la largeur écran, max 58px */
+                    font-size: clamp(20px, 6vw, 34px); /* Réduit (était clamp(32px, 9vw, 58px)) : même bug potentiel que le h1 principal, avec un texte plus long ("Nouveau voyageur") et white-space:nowrap forcé ci-dessous -- risque de débordement encore plus élevé */
                     color: var(--titre-h1-color); /* Conserve la couleur bleue originale de la marque */
                     margin: 0 0 40px 0; /* Ajoute un grand espace en bas pour séparer du formulaire */
                     font-weight: bold; /* Met le texte en gras */
@@ -530,7 +530,6 @@
                     color: var(--titre-h1-color); /* Applique la couleur bleue de la marque au texte */
                     margin: 0; /* Supprime les marges par défaut pour un alignement précis */
                     font-weight: bold; /* Met le titre en gras */
-                    text-shadow: 2px 1px 2px var(--btn-bg-color); /* Ajoute une ombre portée légère pour la lisibilité */
         
                     /* Intégration du Logo */
                     background: url('icons/iconbig.png') no-repeat left center; /* Charge le logo depuis le dossier icons et le place à gauche */
@@ -1132,7 +1131,7 @@
                     }
                     /* Effet Rebond (.btn-back, .btn-hamburger, .trip-card, .btn-new-trip, menu d'options) */
                     /* Version simple : pour les éléments sans transform de base */
-                    .trip-card.bouncing, .btn-new-trip.bouncing,
+                    .btn-new-trip.bouncing,
                     .options-menu button.bouncing {
                         animation: bounce-anim 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
                     }
@@ -1142,6 +1141,46 @@
                         70%  { transform: scale(1.08); }
                         100% { transform: scale(1); }
                     }
+
+                    /* .trip-card : rebond volontairement plus discret que les autres boutons
+                       (carte assez grande à l'écran, un rebond ample y est plus voyant/gênant) */
+                    .trip-card.bouncing {
+                        animation: bounce-anim-subtle 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+                    }
+                    @keyframes bounce-anim-subtle {
+                        0%   { transform: scale(1); }
+                        40%  { transform: scale(0.96); }
+                        70%  { transform: scale(1.02); }
+                        100% { transform: scale(1); }
+                    }
+
+                    /* .btn-day : rebond plus prononcé qu'avant (demande explicite d'un effet
+                       de clic plus marqué) */
+                    .btn-day.bouncing {
+                        animation: bounce-anim-strong 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+                    }
+                    @keyframes bounce-anim-strong {
+                        0%   { transform: scale(1); }
+                        40%  { transform: scale(0.78); }
+                        70%  { transform: scale(1.12); }
+                        100% { transform: scale(1); }
+                    }
+
+                    /* Boutons losanges (.btn-recap/.btn-map/.btn-docs/.btn-finance/.btn-orga) :
+                       même intensité renforcée que .btn-day, mais en conservant rotate(45deg)
+                       (leur transform de base) pour ne pas les "déplier" pendant l'animation -
+                       même principe que bounce-anim-vcenter pour .btn-back. */
+                    .btn-recap.bouncing, .btn-map.bouncing, .btn-docs.bouncing,
+                    .btn-finance.bouncing, .btn-orga.bouncing {
+                        animation: bounce-anim-diamond-strong 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+                    }
+                    @keyframes bounce-anim-diamond-strong {
+                        0%   { transform: rotate(45deg) scale(1); }
+                        40%  { transform: rotate(45deg) scale(0.78); }
+                        70%  { transform: rotate(45deg) scale(1.12); }
+                        100% { transform: rotate(45deg) scale(1); }
+                    }
+
                     /* Version centrée : pour .btn-back / .btn-hamburger qui utilisent déjà
                        transform: translateY(-50%) pour leur centrage vertical -> on la
                        conserve dans les keyframes pour éviter un saut visuel pendant l'animation */
@@ -1181,6 +1220,7 @@
             }
            .day-home-screen.active {
                 display: flex; /* Affiche l'écran en mode Flexbox quand la classe "active" est ajoutée */
+                align-items: center; /* Centrage horizontal explicite et direct des enfants (dont .day-home-content) */
             }
 
             /* ==================== */
@@ -1311,9 +1351,7 @@
                     display: flex; /* Active Flexbox pour aligner bouton et titre horizontalement */
                     flex-shrink: 0; /* Empêche le header de se réduire si l'espace manque */
                     width: 100%; /* Assure que le header prend toute la largeur disponible */
-                    justify-content: center; /* Centre le titre */
                     align-items: center; /* Centre verticalement les éléments dans le header */
-                    justify-content: center; /* Centre le titre */
                     padding: 15px 20px; /* Ajoute un espace interne autour du contenu du header */
                     border-bottom: 2px solid rgba(0,0,0,0.1); /* Ajoute une fine ligne de séparation en bas du header */
                     position: relative; /* Important pour permettre un positionnement absolu si nécessaire plus tard */
@@ -1324,10 +1362,13 @@
             /* ======== */
                 .day-detail-title {
                     font-family: var(--main-font); /* Applique la variable de police définie */
-                    font-size: 32px; /* Définit une taille de police adaptée au header */
+                    font-size: 26px; /* Réduit (était 32px) : le titre est plus long maintenant (jour + date), laisse plus de marge */
                     color: var(--titre-h1-color); /* Applique la couleur bleue de la marque au texte */
                     margin: 0; /* Supprime les marges par défaut pour un alignement précis */
                     font-weight: bold; /* Met le titre en gras */
+                    flex: 1; /* Prend tout l'espace restant du header, à côté de .btn-back */
+                    text-align: center; /* Garde le texte centré à l'intérieur de cet espace */
+                    padding-left: 55px; /* Compense la place prise par .btn-back (45px + marge) pour ne pas passer dessous */
                 }
 
             /* ============================================== */
@@ -1420,11 +1461,11 @@
                     cursor: pointer;
                     font-weight: bold;
                     color: var(--text-color-white);
-                    transition: background 0.2s;
+                    transition: background 0.2s, transform 0.1s ease;
                 }
 
                 .btn-nav:active {
-                    transform: scale(0.98);
+                    transform: scale(0.9); /* Effet plus marqué (était 0.98) */
                 }
 
         /* ================= */
@@ -1577,14 +1618,30 @@
             }
 
             /* 2. Header Fixe */
+            /* .trip-home-title (ex: "Synthèse du Voyage") n'avait AUCUNE règle CSS
+               dans tout le fichier -- aucun style ne s'appliquait du tout, pas
+               seulement la couleur. Cohérent avec .day-home-title. */
+            .trip-home-title {
+                font-family: var(--main-font);
+                font-size: 32px;
+                color: var(--titre-h1-color);
+                margin: 0;
+                font-weight: bold;
+            }
+
             #recap-trip-screen .trip-home-header {
                 flex: 0 0 auto;
-                padding: 15px;
+                padding: 8px 15px; /* Réduit (était 15px) : header plus compact pour le récap */
                 background: var(--couleur-fond-modal);
                 border-bottom: 1px solid #ddd;
                 display: flex;
                 align-items: center;
                 gap: 10px;
+            }
+            /* Titre du récap plus petit que sur .trip-home-screen (32px) : moins de place
+               prise par le header, plus de place pour le contenu scrollable en dessous */
+            #recap-trip-screen .trip-home-title {
+                font-size: 22px;
             }
 
             /* 3. Conteneur Scrollable */
@@ -2030,7 +2087,7 @@
                 // Délégation sur document : .trip-card et .btn-back sont générés/clonés
                 // dynamiquement (nouveaux voyages, nouveaux écrans jour) donc un
                 // querySelectorAll classique attaché une seule fois raterait ces éléments.
-                const BOUNCE_SELECTOR = '.btn-back, .btn-hamburger, .trip-card, .btn-new-trip, .options-menu button, .btn-delete';
+                const BOUNCE_SELECTOR = '.btn-back, .btn-hamburger, .trip-card, .btn-new-trip, .options-menu button, .btn-delete, .btn-day, .btn-recap, .btn-map, .btn-docs, .btn-finance, .btn-orga';
 
                 function triggerBounce(el) {
                     el.classList.remove('bouncing');
