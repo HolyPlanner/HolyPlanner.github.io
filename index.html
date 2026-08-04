@@ -63,6 +63,18 @@
                     overflow-x: hidden;
                     max-width: 100vw;
                 }
+                /* Écran de connexion (header + titre + formulaire), jamais nommé jusqu'ici,
+                   vivait en flux normal dans <body> -- donc scrollable avec la page si le
+                   contenu dépassait la hauteur d'écran. Fixe désormais, comme tous les
+                   autres écrans de l'app : le titre ne peut plus défiler. */
+                .login-screen {
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    overflow: hidden;
+                }
                 /* Début du style appliqué au corps de la page */
                 body {
                 /* Sélectionne l'élément body pour lui appliquer les styles suivants */
@@ -102,7 +114,7 @@
                 h1 {
                     /* Sélectionne les titres de niveau 1 (h1) */
                     font-family: var(--main-font); /* Applique la variable de police définie */
-                    font-size: clamp(22px, 8vw, 42px); /* Réduit (était clamp(32px, 15vw, 58px)) : "HolyPlanner" (11 lettres) ne tenait plus dans l'espace restant une fois le logo (65px) et le padding du header déduits, la lettre "R" débordait de l'écran */
+                    font-size: clamp(22px, 10vw, 42px); /* Fluide selon la hauteur d'écran : de 22px à 42px sinon 8% de la largeur*/
                     color: var(--titre-h1-color); ; /* Applique la variable de couleur de titre h1 définie */
                     margin: 0; /* Supprime les marges extérieures par défaut autour du titre */
                     text-shadow: 6px 4px 3px #A7D3C1; /* Ajoute une ombre portée au texte */
@@ -1370,6 +1382,15 @@
                     text-align: center; /* Garde le texte centré à l'intérieur de cet espace */
                     padding-left: 55px; /* Compense la place prise par .btn-back (45px + marge) pour ne pas passer dessous */
                 }
+                /* "Finances" (.finance-home-screen) partage .day-detail-header mais utilise
+                   .day-home-title, pas .day-detail-title -- sans ce recentrage scoped, il
+                   restait collé à gauche depuis que .day-detail-header a perdu son
+                   justify-content:center (retiré pour corriger le titre du jour ci-dessus). */
+                .day-detail-header .day-home-title {
+                    flex: 1;
+                    text-align: center;
+                    padding-left: 55px;
+                }
 
             /* ============================================== */
             /* d. Conteneur principal (tout l'espace restant) */
@@ -1631,17 +1652,16 @@
 
             #recap-trip-screen .trip-home-header {
                 flex: 0 0 auto;
-                padding: 8px 15px; /* Réduit (était 15px) : header plus compact pour le récap */
+                padding: 15px 20px; /* Aligné sur .day-home-header (même taille demandée) */
                 background: var(--couleur-fond-modal);
                 border-bottom: 1px solid #ddd;
                 display: flex;
                 align-items: center;
                 gap: 10px;
             }
-            /* Titre du récap plus petit que sur .trip-home-screen (32px) : moins de place
-               prise par le header, plus de place pour le contenu scrollable en dessous */
+            /* Aligné sur .day-home-title (32px) : même taille que .day-home-header demandée */
             #recap-trip-screen .trip-home-title {
-                font-size: 22px;
+                font-size: 32px;
             }
 
             /* 3. Conteneur Scrollable */
@@ -1672,6 +1692,20 @@
                 padding: 15px;
                 overflow: visible; /* Le contenu définit sa propre hauteur, rien à couper */
                 box-sizing: border-box;
+                transform: scale(0.95); /* Rendu légèrement réduit pour chaque jour dans la liste */
+                transform-origin: top center;
+            }
+
+            /* Empêche les titres (jour + date, ou "Finances") de retourner à la ligne
+               dans l'espace plus compact du récap */
+            #recap-days-stack .day-detail-title,
+            #recap-days-stack .day-home-title {
+                white-space: nowrap;
+            }
+            /* .btn-back est masqué dans le récap (voir plus bas) : pas besoin de compenser
+               sa place avec le padding-left prévu pour l'écran normal */
+            #recap-days-stack .day-detail-title {
+                padding-left: 0;
             }
 
             /* Le contenu interne (.day-detail-content) hérite de flex:1, pensé pour un
@@ -1719,19 +1753,26 @@
 
 
 <body> <!-- Ouvre le corps visible de la page -->
-    <!-- ================== -->
-    <!-- En-tête sémantique -->
-    <!-- ================== -->
-        <header> <!-- Ouvre l'en-tête de la page -->
-            <h1>HolyPlanner</h1> <!-- Affiche le titre principal de l'application -->
-        </header> <!-- Ferme l'en-tête -->
+    <!-- ======================= -->
+    <!-- 01. ÉCRAN DE CONNEXION -->
+    <!-- ======================= -->
+    <!-- Jusqu'ici, cet écran (header + titre + login-container + bouton New)
+         n'était jamais enveloppé dans un conteneur nommé, contrairement à tous
+         les autres écrans de l'app (#dashboard-screen, #signup-screen...) --
+         il vivait directement dans <body>, en flux normal, ce qui le rendait
+         scrollable avec le reste de la page. Ce conteneur le rend fixe comme
+         les autres écrans (voir .login-screen en CSS). -->
+    <div id="login-screen" class="login-screen">
+        <!-- ================== -->
+        <!-- En-tête sémantique -->
+        <!-- ================== -->
+            <header> <!-- Ouvre l'en-tête de la page -->
+                <h1>HolyPlanner</h1> <!-- Affiche le titre principal de l'application -->
+            </header> <!-- Ferme l'en-tête -->
 
-    <!-- ================= -->
-    <!-- Contenu principal -->
-    <!-- ================= -->
-        <!-- ======================= -->
-        <!-- 01. ECRAN DE CONNECTION -->
-        <!-- ======================= -->
+        <!-- ================= -->
+        <!-- Contenu principal -->
+        <!-- ================= -->
             <!-- ================================================= -->
             <!-- a. CONTENEUR PRINCIPAL DU FORMULAIRE DE CONNEXION -->
             <!-- ================================================= -->
@@ -1758,6 +1799,7 @@
                         New <!-- Texte affiché à l'intérieur du bouton rond -->
                     </button> <!-- Ferme le bouton "New" -->
                 </div> <!-- Ferme le conteneur du bouton "New" -->
+    </div> <!-- Ferme #login-screen -->
 
         <!-- ======================================= -->
         <!-- 02. ÉCRAN DE CRÉATION DE COMPTE (MODAL) -->
