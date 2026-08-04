@@ -54,6 +54,15 @@
             /* ========================================== */
             /* a. Configuration de l'image de fond (Body) */
             /* ========================================== */
+                /* html : les écrans de l'app sont en position:fixed, qui échappe à la
+                   protection overflow-x posée sur body seul (un élément fixed se positionne
+                   par rapport au viewport/à la racine, pas par rapport à ses ancêtres en
+                   flux normal). Cette règle sur html couvre donc ce cas que body ne peut pas
+                   couvrir seul. */
+                html {
+                    overflow-x: hidden;
+                    max-width: 100vw;
+                }
                 /* Début du style appliqué au corps de la page */
                 body {
                 /* Sélectionne l'élément body pour lui appliquer les styles suivants */
@@ -896,7 +905,10 @@
                 z-index: 300; /* Place l'écran au-dessus du dashboard (indice d'empilement) */
                 flex-direction: column; /* Empile les éléments enfants verticalement (Header -> Contenu) */
                 font-family: var(--main-font); /* Applique la variable de police définie */
-                overflow: hidden; /* Empêche le débordement de toute la page */
+                overflow-y: auto; /* Corrigé (était "hidden") : filet de sécurité, cet écran n'a pas
+                   de conteneur de contenu dédié avec son propre scroll -- sans ça, tout excédent
+                   de hauteur (ex: petit écran) était coupé net, sans recours possible. */
+                -webkit-overflow-scrolling: touch;
             }
            .trip-home-screen.active {
                 display: flex; /* Affiche l'écran en mode Flexbox quand la classe "active" est ajoutée */
@@ -1334,7 +1346,10 @@
                     justify-content: flex-start; /* Aligne le contenu en haut (plus logique pour du scroll) */
                     /*height: calc(100vh - 80px); /* Ajustez selon la hauteur de votre header */
                     min-height: 0; /* IMPORTANT : Permet à flex de réduire la taille si besoin */
-                    overflow-y: hidden; /* Empêche le scroll global, on scrollera seulement dans les inputs si besoin */
+                    overflow-y: auto; /* Corrigé (était "hidden") : sans ça, si Transport + Logement +
+                       Activités dépassent la hauteur de l'écran, tout est coupé net sans aucun
+                       moyen de le voir autrement qu'en dézoomant manuellement. */
+                    -webkit-overflow-scrolling: touch; /* Scroll fluide sur iOS/Safari */
                 }
 
             /* ============================================== */
@@ -1740,22 +1755,6 @@
                     <button onclick="closeOptionsMenu()">Annuler</button>
                 </div>
 
-                <!-- MODALE DE SÉLECTION D'HEURE (remplace le picker natif <input type="time">,
-                     non stylable/centrable en CSS sur mobile) -->
-                <div id="time-picker-modal" class="modal-overlay">
-                    <div class="modal-content-add time-picker-content">
-                        <h3>Heure d'arrivée</h3>
-                        <div class="time-picker-selects">
-                            <select id="time-picker-hour" aria-label="Heure"></select>
-                            <span class="time-picker-sep">:</span>
-                            <select id="time-picker-minute" aria-label="Minute"></select>
-                        </div>
-                        <div class="nav-buttons">
-                            <button type="button" id="time-picker-cancel">Annuler</button>
-                            <button type="button" id="time-picker-confirm">Valider</button>
-                        </div>
-                    </div>
-                </div>
                 <!-- Conteneur principal qui prend tout l'espace restant grâce à flex:1 dans le CSS -->
                 <main class="dashboard-content">
                     <!-- Conteneur principal de la grille (à placer dans #dashboard-content) -->
@@ -1807,6 +1806,27 @@
                         </div>
                     </div>
                 </main>
+            </div>
+
+            <!-- MODALE DE SÉLECTION D'HEURE (remplace le picker natif <input type="time">,
+                 non stylable/centrable en CSS sur mobile). Placée ici, AU MÊME NIVEAU que
+                 les écrans (.trip-home-screen, .day-detail-screen...) et non plus imbriquée
+                 dans #dashboard-screen : un enfant ne peut jamais s'afficher au-dessus d'un
+                 AUTRE écran complet, quel que soit son propre z-index, si son parent est
+                 lui-même derrière cet autre écran. -->
+            <div id="time-picker-modal" class="modal-overlay">
+                <div class="modal-content-add time-picker-content">
+                    <h3>Heure d'arrivée</h3>
+                    <div class="time-picker-selects">
+                        <select id="time-picker-hour" aria-label="Heure"></select>
+                        <span class="time-picker-sep">:</span>
+                        <select id="time-picker-minute" aria-label="Minute"></select>
+                    </div>
+                    <div class="nav-buttons">
+                        <button type="button" id="time-picker-cancel">Annuler</button>
+                        <button type="button" id="time-picker-confirm">Valider</button>
+                    </div>
+                </div>
             </div>
         <!-- ============================= -->
         <!-- 04. ÉCRAN D'ACCUEIL DU VOYAGE -->
