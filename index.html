@@ -114,7 +114,7 @@
                 h1 {
                     /* Sélectionne les titres de niveau 1 (h1) */
                     font-family: var(--main-font); /* Applique la variable de police définie */
-                    font-size: clamp(22px, 10vw, 42px); /* Fluide selon la hauteur d'écran : de 22px à 42px sinon 8% de la largeur*/
+                    font-size: clamp(22px, 12vw, 42px); /* Fluide selon la hauteur d'écran : de 22px à 42px sinon 8% de la largeur*/
                     color: var(--titre-h1-color); ; /* Applique la variable de couleur de titre h1 définie */
                     margin: 0; /* Supprime les marges extérieures par défaut autour du titre */
                     text-shadow: 6px 4px 3px #A7D3C1; /* Ajoute une ombre portée au texte */
@@ -1283,7 +1283,7 @@
                     .day-home-grid {
                         display: grid; /* Active CSS Grid pour placer les boutons précisément */
                         grid-auto-flow: row; /* Force le remplissage ligne par ligne (gauche à droite, puis bas) */
-                        grid-template-columns: repeat(3, minmax(100px, 1fr)); /* 3 colonnes égales */
+                        grid-template-columns: repeat(3, minmax(80px, 1fr)); /* Minimum réduit (était 100px) : évitait un débordement à droite sur écran étroit, qui décalait visuellement toute la grille */
                         gap: 10px; /* Espace de 10px entre les lignes et les colonnes */
                         padding: 10px; /* Ajoute une marge interne de 10px autour de la grille */
                         width: 100%; /* Prend toute la largeur disponible */
@@ -2063,7 +2063,7 @@
                 <!-- Header Fixe -->
                 <div class="trip-home-header">
                     <button class="btn-back" onclick="closeRecap()">&#8592;</button> <!-- Bouton retour (flèche) qui ferme l'écran -->
-                    <h2 class="trip-home-title">Synthèse du Voyage</h2>
+                    <h2 class="trip-home-title">Synthèse</h2>
                 </div>
 
                 <!-- Conteneur Scrollable (Prend tout l'espace restant) -->
