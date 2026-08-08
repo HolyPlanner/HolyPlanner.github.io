@@ -711,6 +711,12 @@
                     z-index: 600;
                 }
 
+                /* Modale d'ajout de document, au-dessus de #docs-screen (300) ET de
+                   #checklist-screen (350) au cas où elle serait ouverte depuis là. */
+                #docs-add-modal {
+                    z-index: 600;
+                }
+
                 /* Écran de chargement : mêmes couleurs de fond que le reste de l'app
                    (var(--couleur-fond-modal), identique au body), affiché entre le clic
                    sur "Connexion" et la réponse du serveur (peut prendre 30-60s le temps
@@ -1888,6 +1894,226 @@
                 .map-mode-choice button[data-mode="bike"].map-mode-selected { background: var(--map-color-bike); }
                 .map-mode-choice button[data-mode="hiking"].map-mode-selected { background: var(--map-color-hiking); }
 
+            /* ================================ */
+            /* ÉCRAN DOCUMENTS (.btn-docs) */
+            /* ================================ */
+                /* #docs-screen réutilise .trip-home-header/.trip-home-title tel quel
+                   (même format que .trip-home-screen, comme demandé) : rien à redéfinir
+                   pour le header lui-même. */
+                #docs-screen {
+                    display: none;
+                    position: fixed;
+                    top: 0; left: 0;
+                    width: 100%;
+                    height: 100%;
+                    z-index: 300;
+                    flex-direction: column;
+                    background: var(--couleur-fond-modal);
+                    overflow: hidden;
+                }
+                #docs-screen.active {
+                    display: flex;
+                }
+                .docs-content {
+                    flex: 1;
+                    overflow-y: auto;
+                    -webkit-overflow-scrolling: touch;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center; /* Centrage horizontal du conteneur, comme demandé */
+                    padding: 20px;
+                    gap: 15px;
+                }
+                .docs-checklist-btn {
+                    width: 100%;
+                    max-width: 400px;
+                    padding: 16px;
+                    border: none;
+                    border-radius: 12px;
+                    background: var(--btn-accent-bg);
+                    color: var(--text-color-second);
+                    font-family: var(--main-font);
+                    font-weight: bold;
+                    font-size: 18px;
+                    cursor: pointer;
+                }
+                .docs-list {
+                    width: 100%;
+                    max-width: 400px;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 10px;
+                }
+                .docs-item {
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    gap: 10px;
+                    padding: 12px 14px;
+                    background: rgba(255,255,255,0.5);
+                    border: 2px solid var(--text-color-white);
+                    border-radius: 10px;
+                }
+                .docs-item-info {
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                    overflow: hidden;
+                    text-decoration: none;
+                    color: var(--titre-h1-color);
+                    font-family: var(--main-font);
+                    font-weight: bold;
+                }
+                .docs-item-info span.docs-item-icon { font-size: 20px; flex-shrink: 0; }
+                .docs-item-info span.docs-item-label {
+                    white-space: nowrap;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                }
+                .docs-item-delete {
+                    border: none;
+                    background: #e5484d;
+                    color: white;
+                    border-radius: 6px;
+                    padding: 6px 10px;
+                    font-weight: bold;
+                    cursor: pointer;
+                    flex-shrink: 0;
+                }
+                .docs-add-btn {
+                    width: 100%;
+                    max-width: 400px;
+                    padding: 14px;
+                    border: 2px dashed var(--text-color-white);
+                    border-radius: 10px;
+                    background: transparent;
+                    color: var(--text-color-white);
+                    font-family: var(--main-font);
+                    font-weight: bold;
+                    font-size: 16px;
+                    cursor: pointer;
+                }
+
+                /* Modale d'ajout de document (lien ou fichier) */
+                .docs-type-choice {
+                    display: flex;
+                    gap: 8px;
+                    margin-bottom: 12px;
+                }
+                .docs-type-choice button {
+                    flex: 1;
+                    padding: 10px 5px;
+                    border-radius: 8px;
+                    border: 2px solid var(--text-color-white);
+                    background: transparent;
+                    font-family: var(--main-font);
+                    font-weight: bold;
+                    font-size: 14px;
+                    cursor: pointer;
+                }
+                .docs-type-choice button.docs-type-selected {
+                    background: var(--btn-accent-bg);
+                    color: var(--text-color-second);
+                    border-color: transparent;
+                }
+
+            /* ================================ */
+            /* ÉCRAN CHECKLIST (depuis Documents) */
+            /* ================================ */
+                #checklist-screen {
+                    display: none;
+                    position: fixed;
+                    top: 0; left: 0;
+                    width: 100%;
+                    height: 100%;
+                    z-index: 350; /* Au-dessus de #docs-screen (300), ouvert depuis cet écran */
+                    flex-direction: column;
+                    background: var(--couleur-fond-modal);
+                    overflow: hidden;
+                }
+                #checklist-screen.active {
+                    display: flex;
+                }
+                .checklist-content {
+                    flex: 1;
+                    overflow-y: auto;
+                    -webkit-overflow-scrolling: touch;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    padding: 20px;
+                    gap: 10px;
+                }
+                .checklist-add-row {
+                    width: 100%;
+                    max-width: 400px;
+                    display: flex;
+                    gap: 8px;
+                    margin-bottom: 10px;
+                }
+                .checklist-add-row input {
+                    flex: 1;
+                    padding: 10px;
+                    border: 2px solid var(--text-color-white);
+                    border-radius: 8px;
+                    font-family: var(--main-font);
+                    font-size: 16px;
+                    box-sizing: border-box;
+                }
+                .checklist-add-row button {
+                    border: none;
+                    border-radius: 8px;
+                    padding: 0 18px;
+                    background: var(--btn-accent-bg);
+                    color: var(--text-color-second);
+                    font-weight: bold;
+                    font-size: 20px;
+                    cursor: pointer;
+                }
+                .checklist-list {
+                    width: 100%;
+                    max-width: 400px;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 8px;
+                }
+                .checklist-item {
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                    padding: 10px 14px;
+                    background: rgba(255,255,255,0.5);
+                    border: 2px solid var(--text-color-white);
+                    border-radius: 10px;
+                }
+                .checklist-item input[type="checkbox"] {
+                    width: 22px;
+                    height: 22px;
+                    flex-shrink: 0;
+                    cursor: pointer;
+                }
+                .checklist-item label {
+                    flex: 1;
+                    font-family: var(--main-font);
+                    font-size: 16px;
+                    color: var(--titre-h1-color);
+                    word-break: break-word;
+                }
+                .checklist-item.checklist-checked label {
+                    text-decoration: line-through;
+                    opacity: 0.55;
+                }
+                .checklist-item-delete {
+                    border: none;
+                    background: #e5484d;
+                    color: white;
+                    border-radius: 6px;
+                    padding: 5px 9px;
+                    font-weight: bold;
+                    cursor: pointer;
+                    flex-shrink: 0;
+                }
+
 
     </style> <!-- Ferme la section de style CSS interne à la page -->
 
@@ -2134,6 +2360,61 @@
                         <button type="button" id="map-route-cancel">Annuler</button>
                         <button type="button" id="map-route-start">Commencer le tracé</button>
                     </div>
+                </div>
+            </div>
+
+        <!-- ================== -->
+        <!-- 03.6. ÉCRAN DOCUMENTS (voir .btn-docs) -->
+        <!-- ================== -->
+            <div id="docs-screen">
+                <!-- Même format de header/titre que .trip-home-screen, comme demandé -->
+                <header class="trip-home-header">
+                    <button class="btn-back" id="btn-docs-back">&larr;</button>
+                    <h2 class="trip-home-title">Documents</h2>
+                </header>
+
+                <div class="docs-content">
+                    <button type="button" class="docs-checklist-btn" id="docs-open-checklist">✅ Checklist</button>
+
+                    <div class="docs-list" id="docs-list"></div>
+
+                    <button type="button" class="docs-add-btn" id="docs-add-btn">+ Ajouter un document</button>
+                </div>
+            </div>
+
+            <!-- Modale d'ajout de document (lien ou fichier) -->
+            <div id="docs-add-modal" class="modal-overlay">
+                <div class="modal-content-add map-form-content">
+                    <h3>Nouveau document</h3>
+                    <div class="docs-type-choice">
+                        <button type="button" data-doctype="link" class="docs-type-selected">🔗 Lien</button>
+                        <button type="button" data-doctype="file">📄 Fichier</button>
+                    </div>
+                    <input type="text" id="docs-add-label" placeholder="Nom (ex: Réservation hôtel)" maxlength="60">
+                    <input type="url" id="docs-add-url" placeholder="https://...">
+                    <input type="file" id="docs-add-file" style="display:none;">
+                    <div class="nav-buttons">
+                        <button type="button" id="docs-add-cancel">Annuler</button>
+                        <button type="button" id="docs-add-confirm">Ajouter</button>
+                    </div>
+                </div>
+            </div>
+
+        <!-- ================== -->
+        <!-- 03.7. ÉCRAN CHECKLIST (depuis Documents) -->
+        <!-- ================== -->
+            <div id="checklist-screen">
+                <header class="trip-home-header">
+                    <button class="btn-back" id="btn-checklist-back">&larr;</button>
+                    <h2 class="trip-home-title">Checklist</h2>
+                </header>
+
+                <div class="checklist-content">
+                    <div class="checklist-add-row">
+                        <input type="text" id="checklist-add-input" placeholder="Ajouter un élément..." maxlength="60">
+                        <button type="button" id="checklist-add-btn">+</button>
+                    </div>
+                    <div class="checklist-list" id="checklist-list"></div>
                 </div>
             </div>
 
@@ -3543,6 +3824,13 @@
                                         if (tripId) openMapScreen(tripId);
                                     });
                                 }
+                                const btnDocs = document.querySelector('.btn-docs');
+                                if (btnDocs) {
+                                    btnDocs.addEventListener('click', () => {
+                                        const tripId = currentTripId;
+                                        if (tripId) openDocsScreen(tripId);
+                                    });
+                                }
                                 const btnFinance = document.querySelector('.btn-finance');
                                 if (btnFinance) {
                                     btnFinance.onclick = function() {
@@ -4165,6 +4453,239 @@
                         }
                         resetMapDrawingState();
                         setMapToolbarState('normal');
+                    });
+                });
+
+            // ========================================
+            // --- ÉCRAN DOCUMENTS (.btn-docs) + CHECKLIST ---
+            // ========================================
+                let docsCurrentTripId = null;
+                let docsPendingType = 'link'; // 'link' | 'file'
+                let docsPendingFileData = null;
+                let docsPendingFileName = null;
+
+                async function openDocsScreen(tripId) {
+                    docsCurrentTripId = tripId;
+                    document.getElementById('trip-home-screen')?.classList.remove('active');
+                    document.getElementById('docs-screen').classList.add('active');
+                    await loadDocuments(tripId);
+                }
+
+                function closeDocsScreen() {
+                    document.getElementById('docs-screen').classList.remove('active');
+                    document.getElementById('trip-home-screen')?.classList.add('active');
+                }
+
+                async function loadDocuments(tripId) {
+                    const listEl = document.getElementById('docs-list');
+                    listEl.innerHTML = '';
+                    try {
+                        const docs = await apiRequest('GET', `/trips/${tripId}/documents`);
+                        (docs || []).forEach(renderDocument);
+                    } catch (e) {
+                        console.error('Impossible de charger les documents :', e);
+                    }
+                }
+
+                function renderDocument(doc) {
+                    const listEl = document.getElementById('docs-list');
+                    const item = document.createElement('div');
+                    item.className = 'docs-item';
+
+                    const link = document.createElement('a');
+                    link.className = 'docs-item-info';
+                    link.href = doc.type === 'link' ? doc.url : doc.fileData;
+                    link.target = '_blank';
+                    link.rel = 'noopener noreferrer';
+                    // Pour un fichier, "download" propose l'enregistrement plutôt que
+                    // d'essayer de l'afficher dans un nouvel onglet.
+                    if (doc.type === 'file') link.download = doc.fileName || doc.label;
+
+                    const icon = document.createElement('span');
+                    icon.className = 'docs-item-icon';
+                    icon.textContent = doc.type === 'link' ? '🔗' : '📄';
+                    const label = document.createElement('span');
+                    label.className = 'docs-item-label';
+                    label.textContent = doc.label;
+                    link.appendChild(icon);
+                    link.appendChild(label);
+
+                    const delBtn = document.createElement('button');
+                    delBtn.className = 'docs-item-delete';
+                    delBtn.textContent = 'Suppr.';
+                    delBtn.addEventListener('click', async () => {
+                        try {
+                            await apiRequest('DELETE', `/trips/${docsCurrentTripId}/documents/${doc.id}`);
+                            item.remove();
+                        } catch (e) {
+                            alert("Échec de la suppression.");
+                        }
+                    });
+
+                    item.appendChild(link);
+                    item.appendChild(delBtn);
+                    listEl.appendChild(item);
+                }
+
+                // --- Checklist ---
+                async function openChecklistScreen() {
+                    document.getElementById('docs-screen').classList.remove('active');
+                    document.getElementById('checklist-screen').classList.add('active');
+                    await loadChecklist();
+                }
+
+                function closeChecklistScreen() {
+                    document.getElementById('checklist-screen').classList.remove('active');
+                    document.getElementById('docs-screen').classList.add('active');
+                }
+
+                async function loadChecklist() {
+                    const listEl = document.getElementById('checklist-list');
+                    listEl.innerHTML = '';
+                    try {
+                        const items = await apiRequest('GET', `/trips/${docsCurrentTripId}/checklist`);
+                        (items || []).forEach(renderChecklistItem);
+                    } catch (e) {
+                        console.error('Impossible de charger la checklist :', e);
+                    }
+                }
+
+                function renderChecklistItem(item) {
+                    const listEl = document.getElementById('checklist-list');
+                    const row = document.createElement('div');
+                    row.className = 'checklist-item' + (item.checked ? ' checklist-checked' : '');
+
+                    const checkbox = document.createElement('input');
+                    checkbox.type = 'checkbox';
+                    checkbox.checked = item.checked;
+                    const uid = `checklist-item-${item.id}`;
+                    checkbox.id = uid;
+                    checkbox.addEventListener('change', async () => {
+                        row.classList.toggle('checklist-checked', checkbox.checked);
+                        try {
+                            await apiRequest('PUT', `/trips/${docsCurrentTripId}/checklist/${item.id}`, { checked: checkbox.checked });
+                        } catch (e) {
+                            alert("Échec de la mise à jour.");
+                        }
+                    });
+
+                    const label = document.createElement('label');
+                    label.htmlFor = uid;
+                    label.textContent = item.label;
+
+                    const delBtn = document.createElement('button');
+                    delBtn.className = 'checklist-item-delete';
+                    delBtn.textContent = '✖';
+                    delBtn.addEventListener('click', async () => {
+                        try {
+                            await apiRequest('DELETE', `/trips/${docsCurrentTripId}/checklist/${item.id}`);
+                            row.remove();
+                        } catch (e) {
+                            alert("Échec de la suppression.");
+                        }
+                    });
+
+                    row.appendChild(checkbox);
+                    row.appendChild(label);
+                    row.appendChild(delBtn);
+                    listEl.appendChild(row);
+                }
+
+                // --- Câblage des écrans Documents/Checklist ---
+                document.addEventListener('DOMContentLoaded', () => {
+                    document.getElementById('btn-docs-back')?.addEventListener('click', closeDocsScreen);
+                    document.getElementById('docs-open-checklist')?.addEventListener('click', openChecklistScreen);
+                    document.getElementById('btn-checklist-back')?.addEventListener('click', closeChecklistScreen);
+
+                    // -- Ajout d'un élément de checklist --
+                    async function addChecklistItem() {
+                        const input = document.getElementById('checklist-add-input');
+                        const label = input.value.trim();
+                        if (!label) return;
+                        try {
+                            const item = await apiRequest('POST', `/trips/${docsCurrentTripId}/checklist`, { label });
+                            renderChecklistItem(item);
+                            input.value = '';
+                            input.focus();
+                        } catch (e) {
+                            alert("Impossible d'ajouter cet élément.");
+                        }
+                    }
+                    document.getElementById('checklist-add-btn')?.addEventListener('click', addChecklistItem);
+                    document.getElementById('checklist-add-input')?.addEventListener('keydown', (e) => {
+                        if (e.key === 'Enter') addChecklistItem();
+                    });
+
+                    // -- Modale d'ajout de document --
+                    const docsAddModal = document.getElementById('docs-add-modal');
+                    const docsUrlInput = document.getElementById('docs-add-url');
+                    const docsFileInput = document.getElementById('docs-add-file');
+
+                    function resetDocsAddModal() {
+                        docsPendingType = 'link';
+                        docsPendingFileData = null;
+                        docsPendingFileName = null;
+                        document.getElementById('docs-add-label').value = '';
+                        docsUrlInput.value = '';
+                        docsUrlInput.style.display = '';
+                        docsFileInput.style.display = 'none';
+                        docsFileInput.value = '';
+                        document.querySelectorAll('.docs-type-choice button').forEach(b => b.classList.remove('docs-type-selected'));
+                        document.querySelector('.docs-type-choice button[data-doctype="link"]').classList.add('docs-type-selected');
+                    }
+
+                    document.getElementById('docs-add-btn')?.addEventListener('click', () => {
+                        resetDocsAddModal();
+                        docsAddModal.classList.add('active');
+                    });
+                    document.getElementById('docs-add-cancel')?.addEventListener('click', () => {
+                        docsAddModal.classList.remove('active');
+                    });
+
+                    document.querySelectorAll('.docs-type-choice button').forEach((btn) => {
+                        btn.addEventListener('click', () => {
+                            document.querySelectorAll('.docs-type-choice button').forEach(b => b.classList.remove('docs-type-selected'));
+                            btn.classList.add('docs-type-selected');
+                            docsPendingType = btn.dataset.doctype;
+                            const isLink = docsPendingType === 'link';
+                            docsUrlInput.style.display = isLink ? '' : 'none';
+                            docsFileInput.style.display = isLink ? 'none' : '';
+                        });
+                    });
+
+                    // Même mécanisme que pour l'image de couverture d'un voyage : conversion
+                    // du fichier choisi en base64 directement dans le navigateur.
+                    docsFileInput?.addEventListener('change', (e) => {
+                        const file = e.target.files[0];
+                        if (!file) return;
+                        docsPendingFileName = file.name;
+                        const reader = new FileReader();
+                        reader.onload = (ev) => { docsPendingFileData = ev.target.result; };
+                        reader.readAsDataURL(file);
+                    });
+
+                    document.getElementById('docs-add-confirm')?.addEventListener('click', async () => {
+                        const label = document.getElementById('docs-add-label').value.trim();
+                        if (!label) { alert('Indique un nom pour ce document.'); return; }
+
+                        const payload = { label, type: docsPendingType };
+                        if (docsPendingType === 'link') {
+                            const url = docsUrlInput.value.trim();
+                            if (!url) { alert('Indique un lien.'); return; }
+                            payload.url = url;
+                        } else {
+                            if (!docsPendingFileData) { alert('Choisis un fichier.'); return; }
+                            payload.fileData = docsPendingFileData;
+                            payload.fileName = docsPendingFileName;
+                        }
+
+                        try {
+                            const doc = await apiRequest('POST', `/trips/${docsCurrentTripId}/documents`, payload);
+                            renderDocument(doc);
+                            docsAddModal.classList.remove('active');
+                        } catch (e) {
+                            alert("Impossible d'ajouter ce document (fichier peut-être trop volumineux).");
+                        }
                     });
                 });
 
