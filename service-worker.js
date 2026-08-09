@@ -11,7 +11,7 @@
 // ou, pire, de resservir en hors-ligne les données lues par un autre compte
 // sur le même appareil après une déconnexion/reconnexion.
 
-const CACHE_NAME = 'holyplanner-static-v01.07.01'; // Incrémenté : force le renouvellement du cache chez les utilisateurs déjà installés
+const CACHE_NAME = 'holyplanner-static-v01.07.02'; // Incrémenté : force le renouvellement du cache chez les utilisateurs déjà installés
 
 // IMPORTANT : doit correspondre à la valeur de API_BASE_URL dans index.html
 const API_BASE_URL = 'https://holyplanner-api.onrender.com';
@@ -58,6 +58,14 @@ self.addEventListener('fetch', (event) => {
     const { request } = event;
     const url = new URL(request.url);
 
+    // 0. Ignore tout ce qui n'est pas http(s) (ex: chrome-extension://, générées
+    //    par des extensions du navigateur qui interceptent aussi la page).
+    //    L'API Cache ne sait mettre en cache QUE des requêtes http(s) -- sans ce
+    //    filtre, cache.put() plantait sur ces requêtes avec "Request scheme
+    //    'chrome-extension' is unsupported".
+    if (!url.protocol.startsWith('http')) {
+        return;
+    }
     // 1. Appels vers l'API cloud : toujours le réseau, jamais le cache.
     if (url.href.startsWith(API_BASE_URL)) {
         event.respondWith(fetch(request));
