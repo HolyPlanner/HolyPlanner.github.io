@@ -1478,6 +1478,37 @@
                     min-height: 100px; /* Hauteur minimale de sécurité */
                 }
 
+                /* POI de ce jour (intégrés depuis l'écran Carte) */
+                .day-poi-block {
+                    margin-top: 15px;
+                    flex-shrink: 0;
+                }
+                .day-poi-block h3 {
+                    font-family: var(--main-font);
+                    font-size: 16px;
+                    color: var(--titre-h1-color);
+                    margin: 0 0 8px 0;
+                }
+                .day-poi-item {
+                    background: rgba(255,255,255,0.5);
+                    border: 2px solid var(--text-color-white);
+                    border-radius: 10px;
+                    padding: 8px 12px;
+                    margin-bottom: 8px;
+                }
+                .day-poi-item-title {
+                    font-family: var(--main-font);
+                    font-weight: bold;
+                    font-size: 14px;
+                    color: var(--titre-h1-color);
+                }
+                .day-poi-item-comment {
+                    font-size: 12px;
+                    color: #666;
+                    margin-top: 3px;
+                    white-space: pre-wrap;
+                }
+
                 /* BOUTONS DE NAVIGATION (En bas, écartés) */
                 .nav-buttons {
                     display: flex;
@@ -1963,6 +1994,29 @@
                     color: var(--text-color-second);
                     border-color: transparent;
                 }
+                /* 3 boutons dans .nav-buttons pour cette modale précise : autorise le
+                   retour à la ligne proprement plutôt que de les écraser sur une ligne */
+                #map-filter-modal .nav-buttons {
+                    flex-wrap: wrap;
+                    gap: 8px;
+                }
+                #map-filter-modal .nav-buttons button {
+                    flex: 1 1 auto;
+                    min-width: 100px;
+                    padding: 10px 8px;
+                    border-radius: 8px;
+                    border: 2px solid var(--text-color-white);
+                    background: transparent;
+                    font-family: var(--main-font);
+                    font-weight: bold;
+                    font-size: 13px;
+                    cursor: pointer;
+                }
+                #map-filter-modal #map-filter-apply {
+                    background: var(--btn-accent-bg);
+                    color: var(--text-color-second);
+                    border-color: transparent;
+                }
 
             /* ================================ */
             /* ÉCRAN DOCUMENTS (.btn-docs) */
@@ -2118,11 +2172,16 @@
                     width: 100%;
                     max-width: 400px;
                     display: flex;
+                    flex-wrap: wrap; /* Permet au select de passer sur sa propre ligne si besoin */
                     gap: 8px;
                     margin-bottom: 10px;
                 }
+                .checklist-add-row select {
+                    flex: 1 1 100%; /* Toujours sur sa propre ligne : jamais en concurrence d'espace avec le bouton */
+                }
                 .checklist-add-row input {
-                    flex: 1;
+                    flex: 1 1 auto;
+                    min-width: 0; /* Sans ça, un input peut forcer un débordement dans un conteneur flex */
                     padding: 10px;
                     border: 2px solid var(--text-color-white);
                     border-radius: 8px;
@@ -2131,6 +2190,7 @@
                     box-sizing: border-box;
                 }
                 .checklist-add-row button {
+                    flex: 0 0 auto; /* Taille fixe, jamais compressé ni poussé hors champ */
                     border: none;
                     border-radius: 8px;
                     padding: 0 18px;
@@ -2474,6 +2534,7 @@
                     <p style="margin:0 0 8px 0;font-weight:bold;font-size:14px;">Types de point d'intérêt</p>
                     <div id="map-filter-types" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:15px;"></div>
                     <div class="nav-buttons">
+                        <button type="button" id="map-filter-deselect-all">Tout désélectionner</button>
                         <button type="button" id="map-filter-reset">Tout afficher</button>
                         <button type="button" id="map-filter-apply">Appliquer</button>
                     </div>
@@ -3399,7 +3460,7 @@
                 // ======================================================
                 // 09. Fonction pour générer et afficher une carte voyage
                 // ======================================================
-                    function renderTripCard(trip) {
+                    function renderTripCard(trip, insertAfterNewTrip = false) {
                         // 1. Sélection du conteneur et préparation
                         const grid = document.getElementById('trips-grid'); // Récupère la grille principale des voyages
                         const btnNewTrip = document.querySelector('.btn-new-trip'); // Récupère le bouton "New Trip" pour l'insertion
@@ -3443,9 +3504,16 @@
                                 </div>
                             </div>
                         `;
-                        
-                        // Insère la carte avant le bouton "New Trip"
-                        grid.insertBefore(newCard, btnNewTrip);
+
+                        // Voyage déjà terminé (dateEnd antérieure à aujourd'hui) : la carte est
+                        // ajoutée à la toute fin de la grille, donc APRÈS .btn-new-trip. Les
+                        // voyages à venir/en cours restent insérés juste avant le bouton, comme
+                        // avant.
+                        if (insertAfterNewTrip) {
+                            grid.appendChild(newCard);
+                        } else {
+                            grid.insertBefore(newCard, btnNewTrip);
+                        }
                     }   
 
                 // ==============================================================
@@ -3480,9 +3548,23 @@
                         cloudTrips = result;
 
                         if (cloudTrips.length > 0) {
+                            // Sépare voyages à venir/en cours (dateEnd >= aujourd'hui) et voyages
+                            // déjà terminés (dateEnd < aujourd'hui), chacun trié par date
+                            // croissante (dateStart). Les terminés s'affichent après
+                            // .btn-new-trip (voir renderTripCard).
+                            const todayISO = new Date().toISOString().slice(0, 10); // "YYYY-MM-DD", comparable directement à dateEnd
+                            const upcoming = [];
+                            const past = [];
                             cloudTrips.forEach(trip => {
-                                renderTripCard(trip); // Recrée chaque bouton voyage sauvegardé
+                                (trip.dateEnd && trip.dateEnd < todayISO ? past : upcoming).push(trip);
                             });
+                            const byDateStartAsc = (a, b) => (a.dateStart || '').localeCompare(b.dateStart || '');
+                            upcoming.sort(byDateStartAsc);
+                            past.sort(byDateStartAsc);
+
+                            upcoming.forEach(trip => renderTripCard(trip, false));
+                            past.forEach(trip => renderTripCard(trip, true));
+
                             console.log(cloudTrips.length + " voyages chargés depuis le cloud.");
                         } else {
                             console.log("Aucun voyage sauvegardé trouvé.");
@@ -4795,6 +4877,12 @@
                         document.getElementById('map-filter-modal').classList.remove('active');
                         renderAllMapData();
                     });
+                    document.getElementById('map-filter-deselect-all')?.addEventListener('click', () => {
+                        mapFilterTempDays.clear();
+                        mapFilterTempTypes.clear();
+                        document.querySelectorAll('#map-filter-days .map-filter-chip, #map-filter-types .map-filter-chip')
+                            .forEach(chip => chip.classList.remove('map-filter-chip-active'));
+                    });
                     document.getElementById('map-filter-reset')?.addEventListener('click', () => {
                         mapFilterDays = null;
                         mapFilterTypes = null;
@@ -5072,6 +5160,39 @@
                     return `${shortDay} ${dd}/${mm}`;
                 }
 
+                // Affiche les points d'intérêt tagués sur un jour donné, directement dans
+                // son day-detail-screen (en plus de l'écran Carte). Lecture seule ici :
+                // l'édition complète reste sur la carte, pour ne pas dupliquer ce workflow.
+                async function loadDayPois(tripId, dayId) {
+                    const screen = document.getElementById(`screen-${tripId}-${dayId}`);
+                    if (!screen) return;
+                    const listEl = screen.querySelector(`.day-poi-list[data-day-poi="${dayId}"]`);
+                    if (!listEl) return;
+                    listEl.innerHTML = '<p style="font-size:13px;color:#888;">Chargement...</p>';
+
+                    try {
+                        const pois = await apiRequest('GET', `/trips/${tripId}/pois`);
+                        const dayPois = (pois || []).filter(p => p.dayId === dayId);
+                        listEl.innerHTML = '';
+                        if (dayPois.length === 0) {
+                            listEl.innerHTML = '<p style="font-size:13px;color:#888;">Aucun point d\u2019intérêt sur ce jour pour l\u2019instant.</p>';
+                            return;
+                        }
+                        dayPois.forEach((poi) => {
+                            const typeInfo = (typeof MAP_POI_TYPES !== 'undefined' && MAP_POI_TYPES[poi.type]) || { emoji: '📍', label: 'Autre' };
+                            const item = document.createElement('div');
+                            item.className = 'day-poi-item';
+                            item.innerHTML = `
+                                <div class="day-poi-item-title">${typeInfo.emoji} ${poi.label || typeInfo.label}</div>
+                                ${poi.comment ? `<div class="day-poi-item-comment">${poi.comment.replace(/</g, '&lt;')}</div>` : ''}
+                            `;
+                            listEl.appendChild(item);
+                        });
+                    } catch (e) {
+                        listEl.innerHTML = '<p style="font-size:13px;color:#888;">Impossible de charger les points d\u2019intérêt.</p>';
+                    }
+                }
+
                 function openDayOrgaScreen(tripId, dayId, tripName, maxDays) { // Définit la fonction recevant l'ID voyage et le Jour
                     // Récupère la date de début du voyage pour calculer la date exacte de ce jour
                     const dayLabelTrip = cloudTrips.find(t => t.id === tripId);
@@ -5117,6 +5238,11 @@
 
                                 <div class="activities-block" data-day="${dayId}">
                                     <textarea placeholder="Activités, notes, idées..." class="day-textarea" name="activities"></textarea>
+                                </div>
+
+                                <div class="day-poi-block">
+                                    <h3>📍 Points d'intérêt de ce jour</h3>
+                                    <div class="day-poi-list" data-day-poi="${dayId}"></div>
                                 </div>
 
                                 <div class="nav-buttons">
@@ -5185,6 +5311,9 @@
                     // Logique d'affichage
                     screen.style.display = ''; // 1. EFFACE le style inline 'none' laissé par la fermeture
                     screen.classList.add('active'); // 2. Ajoute la classe 'active' pour afficher (géré par CSS)
+
+                    // Affiche les points d'intérêt tagués sur ce jour précis (voir écran Carte)
+                    loadDayPois(tripId, dayId);
 
                         // --- GESTION NAVIGATION ---
                         screen.addEventListener('click', (e) => {
