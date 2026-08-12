@@ -707,7 +707,7 @@
 
                 /* Modales de l'écran carte (point d'intérêt / itinéraire), au-dessus de
                    #map-screen (z-index 300) -- même raison que time-picker-modal ci-dessus. */
-                #map-poi-modal, #map-route-modal {
+                #map-poi-modal, #map-route-modal, #map-filter-modal {
                     z-index: 600;
                 }
 
@@ -1894,6 +1894,76 @@
                 .map-mode-choice button[data-mode="bike"].map-mode-selected { background: var(--map-color-bike); }
                 .map-mode-choice button[data-mode="hiking"].map-mode-selected { background: var(--map-color-hiking); }
 
+                /* --- Marqueurs de points d'intérêt, style "pin" moderne (inspiré Mapstr) --- */
+                .map-poi-pin {
+                    width: 34px;
+                    height: 34px;
+                    border-radius: 50% 50% 50% 0;
+                    transform: rotate(-45deg);
+                    background: var(--btn-accent-bg);
+                    border: 3px solid white;
+                    box-shadow: 0 2px 6px rgba(0,0,0,0.35);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                }
+                .map-poi-pin span {
+                    transform: rotate(45deg);
+                    font-size: 16px;
+                }
+                /* Popup Leaflet retouché pour matcher le style de l'app */
+                .leaflet-popup-content-wrapper {
+                    border-radius: 12px !important;
+                }
+                .map-poi-popup {
+                    font-family: var(--main-font);
+                    min-width: 160px;
+                }
+                .map-poi-popup .map-poi-popup-title {
+                    font-weight: bold;
+                    font-size: 15px;
+                    color: var(--titre-h1-color);
+                    margin-bottom: 2px;
+                }
+                .map-poi-popup .map-poi-popup-day {
+                    font-size: 12px;
+                    color: #777;
+                    margin-bottom: 6px;
+                }
+                .map-poi-popup .map-poi-popup-comment {
+                    font-size: 13px;
+                    margin-bottom: 8px;
+                    white-space: pre-wrap;
+                }
+                .map-poi-popup button {
+                    border: none;
+                    border-radius: 6px;
+                    padding: 5px 10px;
+                    font-weight: bold;
+                    font-size: 12px;
+                    cursor: pointer;
+                    margin-right: 5px;
+                }
+                .map-poi-popup .map-poi-popup-edit { background: var(--btn-accent-bg); color: var(--text-color-second); }
+                .map-poi-popup .map-poi-popup-gpx { background: #6b21a8; color: white; }
+
+                /* --- Puces de filtre (jours / types) --- */
+                .map-filter-chip {
+                    padding: 7px 12px;
+                    border-radius: 16px;
+                    border: 2px solid var(--text-color-white);
+                    background: transparent;
+                    font-family: var(--main-font);
+                    font-size: 13px;
+                    font-weight: bold;
+                    cursor: pointer;
+                }
+                .map-filter-chip.map-filter-chip-active {
+                    background: var(--btn-accent-bg);
+                    color: var(--text-color-second);
+                    border-color: transparent;
+                }
+
             /* ================================ */
             /* ÉCRAN DOCUMENTS (.btn-docs) */
             /* ================================ */
@@ -2113,6 +2183,25 @@
                     cursor: pointer;
                     flex-shrink: 0;
                 }
+                .checklist-category-header {
+                    width: 100%;
+                    max-width: 400px;
+                    font-family: var(--main-font);
+                    font-weight: bold;
+                    font-size: 15px;
+                    color: var(--titre-h1-color);
+                    margin-top: 8px;
+                    padding-bottom: 4px;
+                    border-bottom: 2px solid var(--text-color-white);
+                }
+                .checklist-add-row select {
+                    padding: 10px 6px;
+                    border: 2px solid var(--text-color-white);
+                    border-radius: 8px;
+                    font-family: var(--main-font);
+                    font-size: 14px;
+                    background: white;
+                }
 
 
     </style> <!-- Ferme la section de style CSS interne à la page -->
@@ -2328,18 +2417,31 @@
                     <button type="button" id="map-btn-set-zone" style="display:none;">📌 Valider cette zone</button>
                     <button type="button" id="map-btn-add-poi">📍 Point</button>
                     <button type="button" id="map-btn-add-route">🛣️ Itinéraire</button>
+                    <button type="button" id="map-btn-filter">🔎 Filtrer</button>
                     <button type="button" id="map-btn-validate-route" style="display:none;">✅ Valider le tracé</button>
                     <button type="button" id="map-btn-cancel-route" style="display:none;">✖️ Annuler</button>
                 </div>
             </div>
 
-            <!-- Petite modale : jour + libellé, pour un nouveau point d'intérêt -->
+            <!-- Modale : nouveau point d'intérêt OU édition d'un point existant -->
             <div id="map-poi-modal" class="modal-overlay">
                 <div class="modal-content-add map-form-content">
-                    <h3>Nouveau point d'intérêt</h3>
+                    <h3 id="map-poi-modal-title">Nouveau point d'intérêt</h3>
                     <select id="map-poi-day"></select>
-                    <input type="text" id="map-poi-label" placeholder="Nom du lieu (optionnel)" maxlength="40">
+                    <select id="map-poi-type">
+                        <option value="restaurant">🍽️ Restaurant</option>
+                        <option value="hebergement">🏨 Hébergement</option>
+                        <option value="visite">👁️ Visite</option>
+                        <option value="nature">🌳 Nature</option>
+                        <option value="plage">🏖️ Plage</option>
+                        <option value="activite">🎯 Activité</option>
+                        <option value="transport">🚉 Transport</option>
+                        <option value="autre" selected>📍 Autre</option>
+                    </select>
+                    <input type="text" id="map-poi-label" placeholder="Nom du lieu" maxlength="40">
+                    <textarea id="map-poi-comment" placeholder="Commentaire (optionnel)" maxlength="300" rows="3" style="width:100%;padding:10px;margin-bottom:12px;border:2px solid var(--text-color-white);border-radius:8px;font-family:var(--main-font);font-size:14px;box-sizing:border-box;resize:vertical;"></textarea>
                     <div class="nav-buttons">
+                        <button type="button" id="map-poi-delete" style="display:none;background:#e5484d;color:white;">Supprimer</button>
                         <button type="button" id="map-poi-cancel">Annuler</button>
                         <button type="button" id="map-poi-confirm">Ajouter</button>
                     </div>
@@ -2359,6 +2461,21 @@
                     <div class="nav-buttons">
                         <button type="button" id="map-route-cancel">Annuler</button>
                         <button type="button" id="map-route-start">Commencer le tracé</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modale de filtre : jours + types de POI -->
+            <div id="map-filter-modal" class="modal-overlay">
+                <div class="modal-content-add map-form-content">
+                    <h3>Filtrer la carte</h3>
+                    <p style="margin:0 0 8px 0;font-weight:bold;font-size:14px;">Jours</p>
+                    <div id="map-filter-days" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:15px;"></div>
+                    <p style="margin:0 0 8px 0;font-weight:bold;font-size:14px;">Types de point d'intérêt</p>
+                    <div id="map-filter-types" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:15px;"></div>
+                    <div class="nav-buttons">
+                        <button type="button" id="map-filter-reset">Tout afficher</button>
+                        <button type="button" id="map-filter-apply">Appliquer</button>
                     </div>
                 </div>
             </div>
@@ -2411,6 +2528,14 @@
 
                 <div class="checklist-content">
                     <div class="checklist-add-row">
+                        <select id="checklist-add-category">
+                            <option value="Bagages|🎒">🎒 Bagages</option>
+                            <option value="Papiers|📄">📄 Papiers</option>
+                            <option value="Santé|💊">💊 Santé</option>
+                            <option value="Électronique|🔌">🔌 Électronique</option>
+                            <option value="Toilette|🧴">🧴 Toilette</option>
+                            <option value="Général|📋" selected>📋 Général</option>
+                        </select>
                         <input type="text" id="checklist-add-input" placeholder="Ajouter un élément..." maxlength="60">
                         <button type="button" id="checklist-add-btn">+</button>
                     </div>
@@ -3695,6 +3820,11 @@
             // FONCTIONS DE L'ECRAN D'ACCUEIL DES VOYAGES
             // ==========================================
                 let currentTripId = null; // Variable globale pour stocker l'ID du voyage en cours de consultation
+                // Si non-null, on est arrivé sur .day-detail-screen depuis le récap (titre
+                // cliqué dans #recap-days-stack) : le bouton retour doit alors renvoyer vers
+                // la synthèse plutôt que vers l'écran normal (voir openDayFromRecap ci-dessous
+                // et le gestionnaire du bouton retour dans openDayOrgaScreen).
+                let recapReturnTripId = null;
                 // ===============================================================
                 // 01. Fonctions pour ouvrir et compléter l'écran d'accueil voyage
                 // ===============================================================
@@ -4005,6 +4135,13 @@
                                         const backBtn = dayClone.querySelector('.btn-back');
                                         if (backBtn) backBtn.remove();
 
+                                        // C-bis. Titre cliquable : ouvre l'écran détaillé réel de ce jour
+                                        const cloneTitle = dayClone.querySelector('.day-detail-title, .day-home-title');
+                                        if (cloneTitle) {
+                                            cloneTitle.style.cursor = 'pointer';
+                                            cloneTitle.addEventListener('click', () => openDayFromRecap(tripId, day));
+                                        }
+
                                         // D. Ajouter au conteneur
                                         stackContainer.appendChild(dayClone);
 
@@ -4099,6 +4236,18 @@
                         }
                     }
 
+                    // Ouvre l'écran réel (interactif) d'un jour depuis un titre cliqué dans le
+                    // récap. Le bouton retour de cet écran ramènera à la synthèse plutôt qu'au
+                    // comportement habituel (voir recapReturnTripId, utilisé dans
+                    // openDayOrgaScreen).
+                    function openDayFromRecap(tripId, dayId) {
+                        const trip = cloudTrips.find(t => t.id === tripId);
+                        if (!trip) return;
+                        recapReturnTripId = tripId;
+                        closeRecap();
+                        openDayOrgaScreen(tripId, dayId, trip.name, trip.duration);
+                    }
+
             // ==================================================
             // FONCTIONS DE L'ECRAN DE PLANIFICATIONS DES VOYAGES
             // ==================================================
@@ -4168,6 +4317,17 @@
                 // Couleur par mode de transport (correspond aux variables CSS --map-color-*)
                 const MAP_MODE_COLORS = { car: '#3b82f6', bike: '#22c55e', hiking: '#f97316' };
                 const MAP_MODE_LABELS = { car: 'Voiture', bike: 'Vélo', hiking: 'Randonnée' };
+                // Catégories de points d'intérêt (icône affichée dans le marqueur + popup)
+                const MAP_POI_TYPES = {
+                    restaurant:  { emoji: '🍽️', label: 'Restaurant' },
+                    hebergement: { emoji: '🏨', label: 'Hébergement' },
+                    visite:      { emoji: '👁️', label: 'Visite' },
+                    nature:      { emoji: '🌳', label: 'Nature' },
+                    plage:       { emoji: '🏖️', label: 'Plage' },
+                    activite:    { emoji: '🎯', label: 'Activité' },
+                    transport:   { emoji: '🚉', label: 'Transport' },
+                    autre:       { emoji: '📍', label: 'Autre' }
+                };
 
                 let mapInstance = null;        // Instance Leaflet, créée une seule fois puis réutilisée
                 let mapPoiLayer = null;        // Calque des points d'intérêt
@@ -4178,6 +4338,15 @@
                 let mapPendingMode = null;     // 'car' | 'bike' | 'hiking' (choisi dans la modale)
                 let mapTempLayer = null;       // Calque temporaire (aperçu du tracé en cours)
                 let mapPendingPoiLatLng = null;
+                let mapEditingPoiId = null;    // id du POI en cours d'édition, null si on est en création
+
+                // Données brutes en mémoire (permet de refiltrer sans re-télécharger)
+                let mapAllPois = [];
+                let mapAllRoutes = [];
+                let mapFilterDays = null;   // null = tous les jours affichés, sinon Set<number>
+                let mapFilterTypes = null;  // null = tous les types affichés, sinon Set<string>
+                let mapPoiMarkers = {};     // { poiId: layerLeaflet }
+                let mapRouteLeafletLayers = {}; // { routeId: layerLeaflet }
 
                 function populateDaySelect(selectEl, duration) {
                     selectEl.innerHTML = '';
@@ -4206,8 +4375,21 @@
                     document.getElementById('map-btn-set-zone').style.display = (state === 'zone') ? '' : 'none';
                     document.getElementById('map-btn-add-poi').style.display = (state === 'normal') ? '' : 'none';
                     document.getElementById('map-btn-add-route').style.display = (state === 'normal') ? '' : 'none';
+                    document.getElementById('map-btn-filter').style.display = (state === 'normal') ? '' : 'none';
                     document.getElementById('map-btn-validate-route').style.display = (state === 'drawing-route') ? '' : 'none';
                     document.getElementById('map-btn-cancel-route').style.display = (state === 'drawing-route') ? '' : 'none';
+                }
+
+                // Construit l'icône "pin" moderne (style Mapstr) avec l'emoji du type du POI
+                function buildPoiDivIcon(type) {
+                    const emoji = (MAP_POI_TYPES[type] || MAP_POI_TYPES.autre).emoji;
+                    return L.divIcon({
+                        className: '',
+                        html: `<div class="map-poi-pin"><span>${emoji}</span></div>`,
+                        iconSize: [34, 34],
+                        iconAnchor: [17, 34],
+                        popupAnchor: [0, -30]
+                    });
                 }
 
                 // --- Ouverture de l'écran carte pour un voyage donné ---
@@ -4235,6 +4417,8 @@
                         mapRouteLayer.clearLayers();
                     }
                     resetMapDrawingState();
+                    mapFilterDays = null;
+                    mapFilterTypes = null;
 
                     // La zone de la carte n'est JAMAIS déduite du pays du voyage : elle est
                     // définie manuellement par l'utilisateur, une seule fois, la première
@@ -4269,6 +4453,7 @@
                     mapPendingWaypoints = [];
                     mapPendingMode = null;
                     mapPendingPoiLatLng = null;
+                    mapEditingPoiId = null;
                     if (mapTempLayer) { mapTempLayer.clearLayers(); }
                     setMapInstructions('');
                 }
@@ -4300,37 +4485,57 @@
                             apiRequest('GET', `/trips/${tripId}/pois`),
                             apiRequest('GET', `/trips/${tripId}/routes`)
                         ]);
-                        (pois || []).forEach(renderPoi);
-                        (routes || []).forEach(renderRoute);
+                        mapAllPois = pois || [];
+                        mapAllRoutes = routes || [];
+                        renderAllMapData();
                     } catch (e) {
                         console.error('Impossible de charger les données de la carte :', e);
                     }
                 }
 
+                function poiPassesFilter(poi) {
+                    if (mapFilterDays && !mapFilterDays.has(poi.dayId)) return false;
+                    if (mapFilterTypes && !mapFilterTypes.has(poi.type)) return false;
+                    return true;
+                }
+                function routePassesFilter(route) {
+                    if (mapFilterDays && !mapFilterDays.has(route.dayId)) return false;
+                    return true;
+                }
+
+                // Redessine tout (points + itinéraires) à partir des données en mémoire,
+                // en tenant compte du filtre actif -- pas de nouvel appel réseau.
+                function renderAllMapData() {
+                    mapPoiLayer.clearLayers();
+                    mapRouteLayer.clearLayers();
+                    mapPoiMarkers = {};
+                    mapRouteLeafletLayers = {};
+                    mapAllPois.filter(poiPassesFilter).forEach(renderPoi);
+                    mapAllRoutes.filter(routePassesFilter).forEach(renderRoute);
+                }
+
                 function renderPoi(poi) {
-                    const marker = L.circleMarker([poi.lat, poi.lng], {
-                        radius: 9,
-                        color: '#264653',
-                        weight: 2,
-                        fillColor: '#FFF1D6',
-                        fillOpacity: 1
-                    }).addTo(mapPoiLayer);
+                    const trip = cloudTrips.find(t => t.id === mapCurrentTripId);
+                    const marker = L.marker([poi.lat, poi.lng], { icon: buildPoiDivIcon(poi.type) }).addTo(mapPoiLayer);
+
+                    const dayTag = formatDayLabel(trip?.dateStart, poi.dayId); // même format que .day-detail-title
+                    const typeInfo = MAP_POI_TYPES[poi.type] || MAP_POI_TYPES.autre;
 
                     const popupDiv = document.createElement('div');
-                    popupDiv.innerHTML = `<b>Jour ${poi.dayId}</b>${poi.label ? ' — ' + poi.label : ''}<br>`;
-                    const delBtn = document.createElement('button');
-                    delBtn.textContent = 'Supprimer';
-                    delBtn.style.cssText = 'margin-top:6px;padding:4px 10px;border:none;border-radius:6px;background:#e5484d;color:white;cursor:pointer;';
-                    delBtn.addEventListener('click', async () => {
-                        try {
-                            await apiRequest('DELETE', `/trips/${mapCurrentTripId}/pois/${poi.id}`);
-                            mapPoiLayer.removeLayer(marker);
-                        } catch (e) {
-                            alert("Échec de la suppression.");
-                        }
-                    });
-                    popupDiv.appendChild(delBtn);
+                    popupDiv.className = 'map-poi-popup';
+                    popupDiv.innerHTML = `
+                        <div class="map-poi-popup-title">${typeInfo.emoji} ${poi.label || typeInfo.label}</div>
+                        <div class="map-poi-popup-day">${dayTag} · Jour ${poi.dayId}</div>
+                        ${poi.comment ? `<div class="map-poi-popup-comment">${poi.comment.replace(/</g, '&lt;')}</div>` : ''}
+                    `;
+                    const editBtn = document.createElement('button');
+                    editBtn.className = 'map-poi-popup-edit';
+                    editBtn.textContent = 'Modifier';
+                    editBtn.addEventListener('click', () => openPoiModalForEdit(poi));
+                    popupDiv.appendChild(editBtn);
                     marker.bindPopup(popupDiv);
+
+                    mapPoiMarkers[poi.id] = marker;
                 }
 
                 function renderRoute(route) {
@@ -4339,29 +4544,70 @@
                     }).addTo(mapRouteLayer);
 
                     const popupDiv = document.createElement('div');
-                    popupDiv.innerHTML = `<b>Jour ${route.dayId}</b> — ${MAP_MODE_LABELS[route.mode] || route.mode}<br>`;
+                    popupDiv.className = 'map-poi-popup';
+                    popupDiv.innerHTML = `<div class="map-poi-popup-title">${MAP_MODE_LABELS[route.mode] || route.mode}</div>
+                        <div class="map-poi-popup-day">Jour ${route.dayId}</div>`;
+
+                    if (route.mode === 'hiking') {
+                        const gpxBtn = document.createElement('button');
+                        gpxBtn.className = 'map-poi-popup-gpx';
+                        gpxBtn.textContent = '⬇️ Export GPX';
+                        gpxBtn.addEventListener('click', () => downloadRouteGpx(route.id, route.dayId));
+                        popupDiv.appendChild(gpxBtn);
+                    }
                     const delBtn = document.createElement('button');
                     delBtn.textContent = 'Supprimer';
-                    delBtn.style.cssText = 'margin-top:6px;padding:4px 10px;border:none;border-radius:6px;background:#e5484d;color:white;cursor:pointer;';
+                    delBtn.style.cssText = 'background:#e5484d;color:white;';
                     delBtn.addEventListener('click', async () => {
                         try {
                             await apiRequest('DELETE', `/trips/${mapCurrentTripId}/routes/${route.id}`);
                             mapRouteLayer.removeLayer(layer);
+                            mapAllRoutes = mapAllRoutes.filter(r => r.id !== route.id);
                         } catch (e) {
                             alert("Échec de la suppression.");
                         }
                     });
                     popupDiv.appendChild(delBtn);
                     layer.bindPopup(popupDiv);
+
+                    mapRouteLeafletLayers[route.id] = layer;
+                }
+
+                // Télécharge le .gpx d'un itinéraire (fetch manuel car le lien doit
+                // porter le token d'authentification, impossible via un simple <a href>)
+                async function downloadRouteGpx(routeId, dayId) {
+                    try {
+                        const response = await fetch(`${API_BASE_URL}/trips/${mapCurrentTripId}/routes/${routeId}/gpx`, {
+                            headers: { 'Authorization': `Bearer ${authToken}` }
+                        });
+                        if (!response.ok) throw new Error('Échec du téléchargement');
+                        const blob = await response.blob();
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = `itineraire-jour-${dayId}.gpx`;
+                        document.body.appendChild(a);
+                        a.click();
+                        a.remove();
+                        URL.revokeObjectURL(url);
+                    } catch (e) {
+                        alert("Impossible de télécharger ce fichier GPX.");
+                    }
                 }
 
                 // --- Gestion des clics sur la carte, selon le mode actif ---
                 function handleMapClick(e) {
                     if (mapClickMode === 'placing-poi') {
                         mapPendingPoiLatLng = e.latlng;
+                        mapEditingPoiId = null;
                         const trip = cloudTrips.find(t => t.id === mapCurrentTripId);
                         populateDaySelect(document.getElementById('map-poi-day'), trip?.duration || 1);
+                        document.getElementById('map-poi-modal-title').textContent = "Nouveau point d'intérêt";
                         document.getElementById('map-poi-label').value = '';
+                        document.getElementById('map-poi-comment').value = '';
+                        document.getElementById('map-poi-type').value = 'autre';
+                        document.getElementById('map-poi-delete').style.display = 'none';
+                        document.getElementById('map-poi-confirm').textContent = 'Ajouter';
                         document.getElementById('map-poi-modal').classList.add('active');
                     } else if (mapClickMode === 'picking-route') {
                         mapPendingWaypoints.push([e.latlng.lat, e.latlng.lng]);
@@ -4372,6 +4618,23 @@
                         }
                         setMapInstructions(`${mapPendingWaypoints.length} point(s) ajoutés. Continue à toucher la carte, puis valide.`);
                     }
+                }
+
+                // Ouvre la modale POI pré-remplie, pour édition d'un point existant
+                function openPoiModalForEdit(poi) {
+                    mapEditingPoiId = poi.id;
+                    mapPendingPoiLatLng = null;
+                    const trip = cloudTrips.find(t => t.id === mapCurrentTripId);
+                    populateDaySelect(document.getElementById('map-poi-day'), trip?.duration || 1);
+                    document.getElementById('map-poi-day').value = poi.dayId;
+                    document.getElementById('map-poi-type').value = poi.type;
+                    document.getElementById('map-poi-label').value = poi.label || '';
+                    document.getElementById('map-poi-comment').value = poi.comment || '';
+                    document.getElementById('map-poi-modal-title').textContent = 'Modifier le point';
+                    document.getElementById('map-poi-delete').style.display = '';
+                    document.getElementById('map-poi-confirm').textContent = 'Enregistrer';
+                    document.getElementById(poi.id ? 'map-poi-modal' : 'map-poi-modal').classList.add('active');
+                    mapInstance.closePopup();
                 }
 
                 // --- Câblage des boutons de la barre d'outils et des modales ---
@@ -4391,17 +4654,40 @@
                     });
                     document.getElementById('map-poi-confirm')?.addEventListener('click', async () => {
                         const dayId = Number(document.getElementById('map-poi-day').value);
+                        const type = document.getElementById('map-poi-type').value;
                         const label = document.getElementById('map-poi-label').value.trim();
+                        const comment = document.getElementById('map-poi-comment').value.trim();
                         document.getElementById('map-poi-modal').classList.remove('active');
-                        if (!mapPendingPoiLatLng) return;
+
                         try {
-                            const poi = await apiRequest('POST', `/trips/${mapCurrentTripId}/pois`, {
-                                dayId, label, lat: mapPendingPoiLatLng.lat, lng: mapPendingPoiLatLng.lng
-                            });
-                            renderPoi(poi);
+                            if (mapEditingPoiId) {
+                                const updated = await apiRequest('PUT', `/trips/${mapCurrentTripId}/pois/${mapEditingPoiId}`, { dayId, type, label, comment });
+                                const idx = mapAllPois.findIndex(p => p.id === mapEditingPoiId);
+                                if (idx !== -1) mapAllPois[idx] = updated;
+                                renderAllMapData();
+                            } else if (mapPendingPoiLatLng) {
+                                const poi = await apiRequest('POST', `/trips/${mapCurrentTripId}/pois`, {
+                                    dayId, type, label, comment, lat: mapPendingPoiLatLng.lat, lng: mapPendingPoiLatLng.lng
+                                });
+                                mapAllPois.push(poi);
+                                if (poiPassesFilter(poi)) renderPoi(poi);
+                            }
                         } catch (e) {
-                            alert("Impossible d'ajouter ce point d'intérêt.");
+                            alert("Impossible d'enregistrer ce point d'intérêt.");
                         }
+                        resetMapDrawingState();
+                    });
+                    document.getElementById('map-poi-delete')?.addEventListener('click', async () => {
+                        if (!mapEditingPoiId) return;
+                        try {
+                            await apiRequest('DELETE', `/trips/${mapCurrentTripId}/pois/${mapEditingPoiId}`);
+                            const marker = mapPoiMarkers[mapEditingPoiId];
+                            if (marker) mapPoiLayer.removeLayer(marker);
+                            mapAllPois = mapAllPois.filter(p => p.id !== mapEditingPoiId);
+                        } catch (e) {
+                            alert("Échec de la suppression.");
+                        }
+                        document.getElementById('map-poi-modal').classList.remove('active');
                         resetMapDrawingState();
                     });
 
@@ -4447,14 +4733,76 @@
                             const route = await apiRequest('POST', `/trips/${mapCurrentTripId}/routes`, {
                                 dayId, mode: mapPendingMode, waypoints: mapPendingWaypoints
                             });
-                            renderRoute(route);
+                            mapAllRoutes.push(route);
+                            if (routePassesFilter(route)) renderRoute(route);
                         } catch (e) {
                             alert("Le calcul de l'itinéraire a échoué (points trop éloignés, ou hors réseau routier/sentier connu).");
                         }
                         resetMapDrawingState();
                         setMapToolbarState('normal');
                     });
+
+                    // -- Filtre (jours + types de POI) --
+                    let mapFilterTempDays = new Set();
+                    let mapFilterTempTypes = new Set();
+
+                    document.getElementById('map-btn-filter')?.addEventListener('click', () => {
+                        const trip = cloudTrips.find(t => t.id === mapCurrentTripId);
+                        const duration = trip?.duration || 1;
+
+                        // Pré-coche tout si aucun filtre actif, sinon reprend la sélection en cours
+                        mapFilterTempDays = mapFilterDays ? new Set(mapFilterDays) : new Set(Array.from({ length: duration }, (_, i) => i + 1));
+                        mapFilterTempTypes = mapFilterTypes ? new Set(mapFilterTypes) : new Set(Object.keys(MAP_POI_TYPES));
+
+                        const daysContainer = document.getElementById('map-filter-days');
+                        daysContainer.innerHTML = '';
+                        for (let d = 1; d <= duration; d++) {
+                            const chip = document.createElement('button');
+                            chip.type = 'button';
+                            chip.className = 'map-filter-chip' + (mapFilterTempDays.has(d) ? ' map-filter-chip-active' : '');
+                            chip.textContent = `Jour ${d}`;
+                            chip.addEventListener('click', () => {
+                                if (mapFilterTempDays.has(d)) mapFilterTempDays.delete(d); else mapFilterTempDays.add(d);
+                                chip.classList.toggle('map-filter-chip-active');
+                            });
+                            daysContainer.appendChild(chip);
+                        }
+
+                        const typesContainer = document.getElementById('map-filter-types');
+                        typesContainer.innerHTML = '';
+                        Object.entries(MAP_POI_TYPES).forEach(([key, info]) => {
+                            const chip = document.createElement('button');
+                            chip.type = 'button';
+                            chip.className = 'map-filter-chip' + (mapFilterTempTypes.has(key) ? ' map-filter-chip-active' : '');
+                            chip.textContent = `${info.emoji} ${info.label}`;
+                            chip.addEventListener('click', () => {
+                                if (mapFilterTempTypes.has(key)) mapFilterTempTypes.delete(key); else mapFilterTempTypes.add(key);
+                                chip.classList.toggle('map-filter-chip-active');
+                            });
+                            typesContainer.appendChild(chip);
+                        });
+
+                        document.getElementById('map-filter-modal').classList.add('active');
+                    });
+
+                    document.getElementById('map-filter-apply')?.addEventListener('click', () => {
+                        const trip = cloudTrips.find(t => t.id === mapCurrentTripId);
+                        const duration = trip?.duration || 1;
+                        // Si tout est coché, on repasse à "pas de filtre" (null) plutôt que de
+                        // garder un Set complet, pour rester cohérent avec "Tout afficher".
+                        mapFilterDays = (mapFilterTempDays.size >= duration) ? null : new Set(mapFilterTempDays);
+                        mapFilterTypes = (mapFilterTempTypes.size >= Object.keys(MAP_POI_TYPES).length) ? null : new Set(mapFilterTempTypes);
+                        document.getElementById('map-filter-modal').classList.remove('active');
+                        renderAllMapData();
+                    });
+                    document.getElementById('map-filter-reset')?.addEventListener('click', () => {
+                        mapFilterDays = null;
+                        mapFilterTypes = null;
+                        document.getElementById('map-filter-modal').classList.remove('active');
+                        renderAllMapData();
+                    });
                 });
+
 
             // ========================================
             // --- ÉCRAN DOCUMENTS (.btn-docs) + CHECKLIST ---
@@ -4544,14 +4892,27 @@
                     listEl.innerHTML = '';
                     try {
                         const items = await apiRequest('GET', `/trips/${docsCurrentTripId}/checklist`);
-                        (items || []).forEach(renderChecklistItem);
+                        // Regroupe par catégorie, en conservant l'ordre d'apparition
+                        const groups = new Map();
+                        (items || []).forEach((item) => {
+                            const key = item.category || 'Général';
+                            if (!groups.has(key)) groups.set(key, { emoji: item.emoji || '📋', items: [] });
+                            groups.get(key).items.push(item);
+                        });
+                        groups.forEach((group, category) => {
+                            const header = document.createElement('div');
+                            header.className = 'checklist-category-header';
+                            header.textContent = `${group.emoji} ${category}`;
+                            listEl.appendChild(header);
+                            group.items.forEach((item) => renderChecklistItem(item, listEl));
+                        });
                     } catch (e) {
                         console.error('Impossible de charger la checklist :', e);
                     }
                 }
 
-                function renderChecklistItem(item) {
-                    const listEl = document.getElementById('checklist-list');
+                function renderChecklistItem(item, container) {
+                    const listEl = container || document.getElementById('checklist-list');
                     const row = document.createElement('div');
                     row.className = 'checklist-item' + (item.checked ? ' checklist-checked' : '');
 
@@ -4579,7 +4940,9 @@
                     delBtn.addEventListener('click', async () => {
                         try {
                             await apiRequest('DELETE', `/trips/${docsCurrentTripId}/checklist/${item.id}`);
-                            row.remove();
+                            // Recharge entièrement : si c'était le dernier élément de sa
+                            // catégorie, l'en-tête de section doit disparaître aussi.
+                            await loadChecklist();
                         } catch (e) {
                             alert("Échec de la suppression.");
                         }
@@ -4602,9 +4965,12 @@
                         const input = document.getElementById('checklist-add-input');
                         const label = input.value.trim();
                         if (!label) return;
+                        const [category, emoji] = document.getElementById('checklist-add-category').value.split('|');
                         try {
-                            const item = await apiRequest('POST', `/trips/${docsCurrentTripId}/checklist`, { label });
-                            renderChecklistItem(item);
+                            await apiRequest('POST', `/trips/${docsCurrentTripId}/checklist`, { label, category, emoji });
+                            // Recharge groupé par catégorie (plus simple/fiable qu'une insertion
+                            // incrémentale au bon endroit dans la bonne section)
+                            await loadChecklist();
                             input.value = '';
                             input.focus();
                         } catch (e) {
@@ -4856,6 +5222,13 @@
                                 e.preventDefault();
                                 screen.style.display = 'none'; // 1. Force le masquage inline
                                 screen.classList.remove('active'); // 2. Retire la classe active
+                                // Si on est arrivé ici depuis un titre cliqué dans le récap,
+                                // on y retourne plutôt que de suivre le comportement habituel.
+                                if (recapReturnTripId) {
+                                    const returnTripId = recapReturnTripId;
+                                    recapReturnTripId = null;
+                                    openRecapScreen(returnTripId);
+                                }
                                 return;
                             }
                         });
