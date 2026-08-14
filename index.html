@@ -2412,10 +2412,10 @@
                                 <input type="text" id="trip-name" placeholder="Nom du voyage" maxlength="18" pattern="[A-Za-zÀ-ÿ\s]+" required>
                                 
                                 <!-- Champ Date de début -->
-                                <input type="text" id="trip-date-start" placeholder="Début (jj/mm/aa)" maxlength="8" oninput="formatDate(this)" required>
-                                
+                                <input type="text" id="trip-date-start" placeholder="Début (jj/mm/aaaa)" maxlength="10" oninput="formatDate(this)" required>
+
                                 <!-- Champ Date de fin -->
-                                <input type="text" id="trip-date-end" placeholder="Fin (jj/mm/aa)" maxlength="8" oninput="formatDate(this)" required>
+                                <input type="text" id="trip-date-end" placeholder="Fin (jj/mm/aaaa)" maxlength="10" oninput="formatDate(this)" required>
                                 
                                 <!-- Champ Pays (Liste déroulante, générée dynamiquement en JS - voir COUNTRIES) -->
                                 <select id="trip-country" required>
@@ -3355,24 +3355,24 @@
                             reader.readAsDataURL(input.files[0]); // Lit le fichier comme URL de données
                         }
                     }
-                    // --- Fonction de validation de date (jj/mm/aa) ---
+                    // --- Fonction de validation de date (jj/mm/aaaa) ---
                     function isValidDate(dateString) {
-                        // Expression régulière pour format jj/mm/aa (2 chiffres / 2 chiffres / 2 chiffres)
-                        const regex = /^(0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[012])\/(\d{2})$/; 
-                        
+                        // Expression régulière pour format jj/mm/aaaa (2 chiffres / 2 chiffres / 4 chiffres)
+                        const regex = /^(0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[012])\/(\d{4})$/;
+
                         if (!regex.test(dateString)) return false; // Si le format ne correspond pas, erreur
-                        
+
                         const parts = dateString.split('/'); // Sépare jour, mois, année
                         const day = parseInt(parts[0], 10); // Convertit jour en entier
                         const month = parseInt(parts[1], 10); // Convertit mois en entier
-                        const year = parseInt('20' + parts[2], 10); // Convertit année (ajoute 20xx)
-                        
+                        const year = parseInt(parts[2], 10); // Convertit année (déjà sur 4 chiffres)
+
                         // Crée un objet Date pour vérifier la validité réelle (ex: 30 février)
                         const dateObj = new Date(year, month - 1, day); // Mois commence à 0 en JS
-                        
+
                         // Vérifie si la date créée correspond aux valeurs entrées
-                        return dateObj.getFullYear() === year && 
-                            dateObj.getMonth() === (month - 1) && 
+                        return dateObj.getFullYear() === year &&
+                            dateObj.getMonth() === (month - 1) &&
                             dateObj.getDate() === day;
                     }
                 // =============================================
@@ -3397,17 +3397,17 @@
                             const countrySelect = document.getElementById('trip-country');
 
                             // --- Début gestion du format de stockage des dates ---
-                                // Récupération brute (ex: "15/07/26")
+                                // Récupération brute (ex: "15/07/2026")
                                 const rawDateStart = document.getElementById('trip-date-start').value.trim();
                                 const rawDateEnd = document.getElementById('trip-date-end').value.trim();
 
                                 // Fonction de conversion locale vers ISO (YYYY-MM-DD)
-                                function toISODate(ddmmyy) {
-                                    if (!ddmmyy) return null;
-                                    const parts = ddmmyy.split('/');
+                                function toISODate(ddmmyyyy) {
+                                    if (!ddmmyyyy) return null;
+                                    const parts = ddmmyyyy.split('/');
                                     if (parts.length !== 3) return null;
-                                    // parts[0]=Jour, parts[1]=Mois, parts[2]=Année (2 chiffres)
-                                    return `20${parts[2]}-${parts[1]}-${parts[0]}`;
+                                    // parts[0]=Jour, parts[1]=Mois, parts[2]=Année (4 chiffres)
+                                    return `${parts[2]}-${parts[1]}-${parts[0]}`;
                                 }
 
                                 // Conversion immédiate
@@ -3494,9 +3494,9 @@
                             <div class="trip-details">
                                 <div class="trip-title">${trip.name}</div>
                                 <div class="trip-dates">
-                                    <span>${trip.dateStart}</span>
+                                    <span>${displayStart}</span>
                                     <span> – </span>
-                                    <span>${trip.dateEnd}</span>
+                                    <span>${displayEnd}</span>
                                 </div>
                                 <div class="trip-country">
                                     <span>${trip.country}</span>
@@ -3636,19 +3636,19 @@
                             // 1. Ouvrir la modale (Remet le bouton en mode "create" temporairement)
                             openAddTripModal();
 
-                            // Fonction utilitaire : Convertit "2026-07-15" en "15/07/26"
+                            // Fonction utilitaire : Convertit "2026-07-15" en "15/07/2026"
                             function toShortDate(isoDate) {
                                 if (!isoDate) return "";
-                                // Vérifie si c'est déjà un format court (jj/mm/aa) pour éviter de reconvertir
-                                if (isoDate.includes('/')) return isoDate; 
-                                
+                                // Vérifie si c'est déjà un format court (jj/mm/aaaa) pour éviter de reconvertir
+                                if (isoDate.includes('/')) return isoDate;
+
                                 const d = new Date(isoDate);
                                 if (isNaN(d.getTime())) return ""; // Retourne vide si la date est invalide
 
                                 // Utilisation de getUTC pour éviter les décalages de fuseau horaire
                                 const day = String(d.getUTCDate()).padStart(2, '0');
                                 const month = String(d.getUTCMonth() + 1).padStart(2, '0');
-                                const year = String(d.getUTCFullYear()).slice(-2);
+                                const year = String(d.getUTCFullYear());
                                 return `${day}/${month}/${year}`;
                             }
                             
@@ -3749,14 +3749,13 @@
                         if (!isValidDate(dateEnd)) { alert("Date fin invalide."); return; }
 
                         // 3. Calcul de la durée
-                        // Fonction utilitaire pour convertir "15/07/26" en "2026-07-15"
-                        function toISODate(ddmmyy) {
-                            if (!ddmmyy) return null;
-                            const parts = ddmmyy.split('/');
+                        // Fonction utilitaire pour convertir "15/07/2026" en "2026-07-15"
+                        function toISODate(ddmmyyyy) {
+                            if (!ddmmyyyy) return null;
+                            const parts = ddmmyyyy.split('/');
                             if (parts.length !== 3) return null;
-                            // parts[0]=Jour, parts[1]=Mois, parts[2]=Année (2 chiffres)
-                            const year = parseInt(parts[2]) > 50 ? `19${parts[2]}` : `20${parts[2]}`; // Gestion siècle (optionnel)
-                            return `${year}-${parts[1].padStart(2,'0')}-${parts[0].padStart(2,'0')}`;
+                            // parts[0]=Jour, parts[1]=Mois, parts[2]=Année (déjà sur 4 chiffres)
+                            return `${parts[2]}-${parts[1].padStart(2,'0')}-${parts[0].padStart(2,'0')}`;
                         }
                         const isoStart = toISODate(dateStart);
                         const isoEnd = toISODate(dateEnd);
@@ -3776,8 +3775,8 @@
                         if (tripIndex !== -1) {
                             const updatedTripPayload = {
                                 name: name,
-                                dateStart: dateStart,
-                                dateEnd: dateEnd,
+                                dateStart: isoStart,
+                                dateEnd: isoEnd,
                                 country: countryName,
                                 flag: countryFlag,
                                 image: currentImageBase64,
@@ -3802,7 +3801,11 @@
                             if (cardToUpdate) {
                                 cardToUpdate.dataset.diffTime = durationDays;
                                 cardToUpdate.querySelector('.trip-title').textContent = name;
-                                cardToUpdate.querySelector('.trip-dates').innerHTML = `<span>${dateStart}</span><span> – </span><span>${dateEnd}</span>`;
+                                // Même conversion ISO -> jj/mm/aaaa que renderTripCard(), pour rester
+                                // cohérent avec l'affichage du dashboard après un rechargement.
+                                const displayStart = isoStart.split('-').reverse().join('/');
+                                const displayEnd = isoEnd.split('-').reverse().join('/');
+                                cardToUpdate.querySelector('.trip-dates').innerHTML = `<span>${displayStart}</span><span> – </span><span>${displayEnd}</span>`;
                                 cardToUpdate.querySelector('.trip-country').innerHTML = `<span>${countryName}</span><span>${countryFlag}</span>`;
                                 
                                 const img = cardToUpdate.querySelector('img');
@@ -3877,9 +3880,10 @@
                     function formatDate(input) {
                         // 1. On récupère la valeur et on ne garde QUE les chiffres
                         let value = input.value.replace(/\D/g, ''); // \D signifie "tout ce qui n'est pas un chiffre"
-                        // 2. On limite à 6 chiffres (pour jj/mm/aa)
-                        if (value.length > 6) {
-                            value = value.substring(0, 6);
+                        // 2. On limite à 8 chiffres (pour jj/mm/aaaa, année sur 4 chiffres --
+                        // évite l'ambiguïté d'une année sur 2 chiffres, ex. 26 = 1926 ou 2026)
+                        if (value.length > 8) {
+                            value = value.substring(0, 8);
                         }
                         // 3. On reconstruit le format avec les slashes
                         let formattedValue = '';
@@ -3888,10 +3892,10 @@
                         } else {
                             formattedValue += value;
                         }
-                        
+
                         if (value.length >= 4) {
                             formattedValue += value.substring(2, 4) + '/'; // MM/
-                            formattedValue += value.substring(4, 6);       // AA
+                            formattedValue += value.substring(4, 8);       // AAAA
                         } else if (value.length > 2) {
                             formattedValue += value.substring(2, 4);       // MM (si entre 2 et 4 chiffres)
                         }
@@ -3929,16 +3933,10 @@
                         // ==========
                         // b. Calculs
                         // ==========
-                                // Dates
-                                const startParts = trip.dateStart.split('/'); // Sépare la date de début (jj/mm/aa) en tableau [jj, mm, aa]
-                                const endParts = trip.dateEnd.split('/'); // Sépare la date de fin (jj/mm/aa) en tableau [jj, mm, aa]
-                                // Conversion en objets Date pour calcul (année 20xx)
-                                const dStart = new Date(2000 + parseInt(startParts[2]), parseInt(startParts[1]) - 1, parseInt(startParts[0])); // Crée objet Date début (mois commence à 0 en JS)
-                                const dEnd = new Date(2000 + parseInt(endParts[2]), parseInt(endParts[1]) - 1, parseInt(endParts[0])); // Crée objet Date fin
-                                // Durée en jours
-                                const diffTime = Math.abs(dEnd - dStart); // Calcule la différence en millisecondes
-                                const durationDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1; // Convertit en jours et ajoute 1 pour inclure le jour de départ
-                                // Assurez-vous que trip.duration existe bien dans l'objet sauvegardé
+                                // Dates : trip.dateStart/dateEnd sont au format ISO (AAAA-MM-JJ) tel
+                                // que renvoyé par le serveur -- pas besoin de recalculer une durée ici,
+                                // trip.duration (déjà calculée et stockée à la création/modification)
+                                // fait foi.
                                 const duration = trip.duration || 0;
                                 updateLodgingCounter(tripId, duration);
                                 const tricountInput = document.getElementById('tricount-url');
@@ -3978,8 +3976,11 @@
                             // Champ 1 : Durée & Lieu
                             document.getElementById('field-duration-place').innerText = `${trip.duration} jours - ${trip.country} ${trip.flag || ''}`; // Affiche "X jours - Pays Drapeau"
 
-                            // Champ 2 : Dates
-                            document.getElementById('field-dates').innerText = `${trip.dateStart} – ${trip.dateEnd}`; // Affiche "jj/mm/aa – jj/mm/aa"
+                            // Champ 2 : Dates -- conversion ISO (AAAA-MM-JJ) -> jj/mm/aaaa pour
+                            // l'affichage, même logique que displayStart/displayEnd dans renderTripCard()
+                            const displayDateStart = (trip.dateStart || '').split('-').reverse().join('/');
+                            const displayDateEnd = (trip.dateEnd || '').split('-').reverse().join('/');
+                            document.getElementById('field-dates').innerText = `${displayDateStart} – ${displayDateEnd}`; // Affiche "jj/mm/aaaa – jj/mm/aaaa"
 
                             // Champ 3 : Budget
                             document.getElementById('val-expenses').innerText = expenses; // Affiche le montant des dépenses
@@ -4227,6 +4228,11 @@
                                         // D. Ajouter au conteneur
                                         stackContainer.appendChild(dayClone);
 
+                                        // D-bis. Recharger les POI de ce jour dans le clone : un cloneNode()
+                                        // ne recopie ni les écouteurs ni les données chargées après coup, et
+                                        // le template généré pour un jour jamais ouvert n'en contient aucun.
+                                        loadDayPois(tripId, day, dayClone);
+
                                         // E. Ajuster la hauteur de chaque textarea à son contenu réel
                                         // (scrollHeight n'est fiable qu'une fois l'élément dans le DOM visible)
                                         dayClone.querySelectorAll('.day-textarea').forEach(ta => {
@@ -4285,6 +4291,11 @@
 
                                             <div class="activities-block" data-day="${dayId}">
                                                 <textarea placeholder="Activités, notes, idées..." class="day-textarea" name="activities">${val('activities')}</textarea>
+                                            </div>
+
+                                            <div class="day-poi-block">
+                                                <h3>📍 Points d'intérêt de ce jour</h3>
+                                                <div class="day-poi-list" data-day-poi="${dayId}"></div>
                                             </div>
                                         </div>
                                     `;
@@ -4884,10 +4895,12 @@
                             .forEach(chip => chip.classList.remove('map-filter-chip-active'));
                     });
                     document.getElementById('map-filter-reset')?.addEventListener('click', () => {
-                        mapFilterDays = null;
-                        mapFilterTypes = null;
-                        document.getElementById('map-filter-modal').classList.remove('active');
-                        renderAllMapData();
+                        const trip = cloudTrips.find(t => t.id === mapCurrentTripId);
+                        const duration = trip?.duration || 1;
+                        mapFilterTempDays = new Set(Array.from({ length: duration }, (_, i) => i + 1));
+                        mapFilterTempTypes = new Set(Object.keys(MAP_POI_TYPES));
+                        document.querySelectorAll('#map-filter-days .map-filter-chip, #map-filter-types .map-filter-chip')
+                            .forEach(chip => chip.classList.add('map-filter-chip-active'));
                     });
                 });
 
@@ -5163,8 +5176,10 @@
                 // Affiche les points d'intérêt tagués sur un jour donné, directement dans
                 // son day-detail-screen (en plus de l'écran Carte). Lecture seule ici :
                 // l'édition complète reste sur la carte, pour ne pas dupliquer ce workflow.
-                async function loadDayPois(tripId, dayId) {
-                    const screen = document.getElementById(`screen-${tripId}-${dayId}`);
+                // `containerEl` permet de cibler un autre conteneur que l'écran réel du jour
+                // (ex: le clone affiché dans le récap du voyage).
+                async function loadDayPois(tripId, dayId, containerEl) {
+                    const screen = containerEl || document.getElementById(`screen-${tripId}-${dayId}`);
                     if (!screen) return;
                     const listEl = screen.querySelector(`.day-poi-list[data-day-poi="${dayId}"]`);
                     if (!listEl) return;
