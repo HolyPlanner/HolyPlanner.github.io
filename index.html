@@ -559,7 +559,7 @@
                     font-weight: bold; /* Met le titre en gras */
         
                     /* Intégration du Logo */
-                /*  background: url('icons/iconbig.png') no-repeat left center; /* Charge le logo depuis le dossier icons et le place à gauche */
+                /*  background: url('icons/Logo_HolyPlanner.png') no-repeat left center; /* Charge le logo depuis le dossier icons et le place à gauche */
                 /*  background-size: 40px auto; /* Redimensionne la hauteur du logo à 50px en gardant les proportions */
                 /*  padding-left: 55px; /* Décale le texte vers la droite pour laisser place au logo (50px + 5px d'espace) */
                 /*  line-height: 1.2; /* Ajuste la hauteur de ligne pour un bon alignement vertical */
@@ -1075,17 +1075,51 @@
                     line-height: 1.2; /* Ajuste la hauteur de ligne pour un bon alignement vertical */
                 }
 
+                /* --- Bouton retour = lanière en cuir + rivet doré --- */
+                /* Remplace l'ancien rond à ombre par la même recette que .case-strap
+                   (lanières de la mallette login/signup) et .cover-back (bouton retour
+                   déjà en place sur trip-home-screen) : une lanière cousue en haut du
+                   header, qui pend avec des coins arrondis en bas et un rivet doré.
+                   Un seul bloc mutualisé sur les 4 headers qui utilisaient encore
+                   l'ancien bouton rond -- .day-detail-header est partagé par
+                   day-detail-screen, finance-home-screen et map-screen ; .trip-home-header
+                   est partagé par recap-trip-screen, docs-screen et checklist-screen.
+                   trip-home-screen n'a pas besoin d'être ajouté ici : son bouton retour
+                   (.cover-back, voir plus bas) a déjà ce design. */
+                .dashboard-header .btn-back,
+                .day-detail-header .btn-back,
+                .day-home-header .btn-back,
                 .trip-home-header .btn-back {
                     position: absolute; /* Positionne le bouton absolument par rapport au header */
-                    left: 20px; /* Colle le bouton à 20px du bord gauche */
-                    top: 50%; /* Place le haut du bouton à 50% de la hauteur du parent */
-                    transform: translateY(-50%); /* Remonte le bouton de 50% de sa hauteur pour le centrer verticalement */
-                    color: var(--text-color-white); /* Applique la couleur bleue à la flèche */
-                    font-size: 0; /* Masque l'ancien caractère : l'icône vient de .btn-back::before (var(--icon-back)) */
-                    background: none; /* Supprime le fond par défaut du bouton */
+                    top: 0; /* Cousue au tout bord supérieur de l'écran (comme .cover-back), plus centrée verticalement */
+                    left: 16px; /* Colle la lanière à 16px du bord gauche */
+                    transform: none; /* Annule le translateY(-50%) de .btn-back de base */
+                    width: 34px; /* Largeur de la lanière (plus étroite que l'ancien rond de 45px) */
+                    height: 46px; /* Hauteur : dépasse sous le header pour l'effet "lanière qui pend" */
+                    background: linear-gradient(to right, #D89A68 0%, var(--btn-second-color) 45%, #8F5A31 100%); /* Même dégradé cuir clair/moyen/foncé que .case-strap */
+                    border-radius: 0 0 12px 12px; /* Arrondi en bas seulement : silhouette de lanière qui pend */
                     border: none; /* Supprime la bordure par défaut du bouton */
+                    box-shadow: 0 4px 9px rgba(38,70,83,.28), inset 0 1px 0 rgba(255,255,255,.25); /* Ombre portée + léger reflet en haut */
                     cursor: pointer; /* Affiche une main au survol pour indiquer le clic */
-                    box-shadow: 3px 3px 6px var(--text-color-white); /* Ombre portée */
+                    display: flex; flex-direction: column; align-items: center; justify-content: flex-start; /* Empile icône puis rivet */
+                    padding-top: 9px; /* Laisse la flèche respirer sous le bord cousu */
+                    z-index: 210; /* S'assure qu'elle reste au-dessus du reste de l'écran */
+                }
+                .dashboard-header .btn-back::before,
+                .day-detail-header .btn-back::before,
+                .day-home-header .btn-back::before,
+                .trip-home-header .btn-back::before {
+                    width: 15px; height: 15px; /* Réduit (était 20px) pour tenir dans la lanière plus étroite */
+                }
+                .dashboard-header .btn-back::after,
+                .day-detail-header .btn-back::after,
+                .day-home-header .btn-back::after,
+                .trip-home-header .btn-back::after {
+                    content: ""; /* Rivet doré, mêmes couleurs que .case-strap::after / .cover-back::after */
+                    margin-top: 6px;
+                    width: 7px; height: 7px; border-radius: 50%;
+                    background: radial-gradient(circle at 35% 30%, #FBDA9A, #E7B25C 55%, #B8802E 100%);
+                    box-shadow: 0 0 0 1.4px #6E4321;
                 }
             /* ======================= */
             /* b. Conteneur principale */
@@ -1340,6 +1374,14 @@
                        priment sur le cascade normal, même avec un sélecteur plus spécifique),
                        créant un saut visuel ("effet de chute") avant de revenir brutalement
                        à sa position réelle. On lui applique donc la version sans translateY. */
+                    /* Même raison pour les nouveaux boutons retour "lanière" (dashboard,
+                       day-detail/finance/map, day-home, trip-home/recap/docs/checklist) :
+                       transform:none comme #signup-screen (voir plus haut), pas de
+                       translateY(-50%) à préserver pendant l'animation. */
+                    .dashboard-header .btn-back.bouncing,
+                    .day-detail-header .btn-back.bouncing,
+                    .day-home-header .btn-back.bouncing,
+                    .trip-home-header .btn-back.bouncing,
                     #signup-screen .btn-back.bouncing {
                         animation: bounce-anim 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
                     }
@@ -1682,7 +1724,7 @@
                     max-width: 600px; /* Limite la largeur à 600px sur les grands écrans */
                     margin: 0 auto; /* Centre le bloc si l'écran est large */
                     padding: 20px;
-                    gap: 12px; /* Espace entre les cartes, aligné sur .trip-stats */
+                    gap: 18px; /* Espace entre les cartes (élargi, était 12px comme .trip-stats) */
                     box-sizing: border-box; /* Inclut le padding dans le calcul de la largeur totale */
                     display: flex; /* Active Flexbox pour structurer le contenu */
                     flex-direction: column; /* Empile les cartes verticalement */
@@ -1721,6 +1763,25 @@
                        04, ÉCRAN D'ACCUEIL DU VOYAGE) : la carte Budget de cet écran et celle de
                        trip-home-screen restent synchronisées par le même JS (updateBudgetBar). */
 
+                    /* --- Variante "carte héros" : Budget ET Reste à dépenser sont les deux     */
+                    /* indicateurs principaux de l'écran, on les grossit à l'identique et on leur */
+                    /* donne une ombre plus marquée (même logique que .dashboard-hero/.trip-cover, */
+                    /* dont l'ombre est plus profonde que celle des cartes secondaires             */
+                    /* .stat-card/.shelf-card). Tricount reste en taille normale (.finance-card). */
+                    .finance-card-lg {
+                        padding: 22px 20px 20px;
+                        gap: 12px;
+                        box-shadow: 0 8px 18px rgba(38,70,83,.18);
+                    }
+                    .finance-card-lg .finance-card-label { font-size: 13px; gap: 8px; }
+                    .finance-card-lg .finance-card-label svg { width: 18px; height: 18px; }
+                    .finance-card-lg .currency { font-size: 20px; margin-left: 5px; }
+
+                    .finance-card-budget .finance-budget-values { font-size: 30px; }
+                    .finance-card-budget .finance-input { font-size: 30px; }
+                    .finance-card-budget .finance-budget-percent { font-size: 22px; }
+                    .finance-card-budget .budget-track { height: 10px; margin-top: 4px; }
+
                     /* --- Carte Reste à dépenser --- */
                     .finance-value-row { display: flex; align-items: baseline; }
                     .finance-value {
@@ -1728,6 +1789,9 @@
                         font-weight: bold;
                         color: var(--titre-h1-color); /* Couleur basculée en vert/rouge par le JS */
                     }
+                    /* Même gabarit de chiffre que la carte Budget (30px), pour que les deux
+                       cartes héros aient le même poids visuel. */
+                    .finance-card-remaining .finance-value { font-size: 30px; }
 
                     .currency { font-size: 14px; font-weight: bold; color: var(--titre-h1-color); margin-left: 3px; }
 
@@ -1744,6 +1808,11 @@
                         padding: 0 2px;
                     }
                     .finance-input-total { width: 62px; }
+                    /* Champs plus larges dans la carte Budget agrandie : ceux-ci vivent à
+                       font-size:30px (voir .finance-card-budget .finance-input ci-dessus),
+                       les largeurs par défaut (pensées pour 16px) les auraient coupés. */
+                    .finance-card-budget .finance-input { width: 88px; }
+                    .finance-card-budget .finance-input-total { width: 110px; }
 
                     .finance-input:hover,
                     .finance-input:focus {
@@ -2442,7 +2511,7 @@
              harmonisé avec le héros du dashboard (voir #dashboard-screen). -->
         <!-- ============================================================ -->
             <div class="login-body">
-                <img class="login-emblem" src="icons/iconbig.png" alt="HolyPlanner">
+                <img class="login-emblem" src="icons/Logo_HolyPlanner.png" alt="HolyPlanner">
                 <h1 class="login-title">HolyPlanner</h1>
                 <p class="login-tagline">Organisez vos prochains voyages</p>
 
@@ -2536,7 +2605,7 @@
                      le titre, l'accroche et les libellés changent. -->
                 <!-- ==================================================================== -->
                     <div class="login-body">
-                        <img class="login-emblem" src="icons/iconbig.png" alt="HolyPlanner">
+                        <img class="login-emblem" src="icons/Logo_HolyPlanner.png" alt="HolyPlanner">
                         <h2 class="login-title">Nouveau voyageur</h2>
                         <p class="login-tagline">Crée ton compte pour commencer à planifier</p>
 
@@ -3009,7 +3078,7 @@
                     <!-- Carte Budget : dépenses / budget total, pourcentage et barre de
                          progression -- reprend la carte "Budget" de trip-home-screen, restée
                          synchronisée via le même JS (updateBudgetBar). -->
-                    <div class="finance-card">
+                    <div class="finance-card finance-card-lg finance-card-budget">
                         <div class="finance-card-label">
                             <svg viewBox="0 0 24 24" fill="none"><path d="M4 8a2 2 0 012-2h13a1 1 0 011 1v10a2 2 0 01-2 2H6a2 2 0 01-2-2V8z" stroke="#2E7D7A" stroke-width="2"/><path d="M15 12h4" stroke="#2E7D7A" stroke-width="2" stroke-linecap="round"/></svg>
                             Budget
@@ -3023,8 +3092,8 @@
                         <div class="budget-track"><div class="budget-fill" id="finance-budget-fill"></div></div>
                     </div>
 
-                    <!-- Carte Reste à dépenser -->
-                    <div class="finance-card">
+                    <!-- Carte Reste à dépenser : même gabarit que la carte Budget ci-dessus -->
+                    <div class="finance-card finance-card-lg finance-card-remaining">
                         <div class="finance-card-label">
                             <svg viewBox="0 0 24 24" fill="none"><path d="M12 21s-6-5-6-10a6 6 0 0112 0c0 5-6 10-6 10z" stroke="#2E7D7A" stroke-width="2"/><circle cx="12" cy="11" r="2.2" stroke="#2E7D7A" stroke-width="2"/></svg>
                             Reste à dépenser
