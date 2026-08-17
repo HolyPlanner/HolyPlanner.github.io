@@ -135,6 +135,16 @@
                     font-size: 13px;
                     color: #5B7981;
                     letter-spacing: .02em;
+                    text-align: center;
+                }
+                /* Petit texte sous la mallette de l'écran d'inscription (renvoie vers
+                   le retour à la connexion). */
+                .signin-hint {
+                    margin-top: 20px;
+                    font-family: var(--main-font);
+                    font-size: 11.5px;
+                    color: #5B7981;
+                    text-align: center;
                 }
 
             /* ==================================================== */
@@ -235,26 +245,6 @@
                     font-size: 15px;
                 }
 
-                /* --- STYLE DES CHAMPS DE SAISIE (INPUTS) --- */
-                .input-field {
-                    /* --- Dimensions et Forme --- */
-                    width: min(250px, 80vw); /* Largeur fixe, mais ne dépasse jamais 80% de l'écran sur les appareils très étroits */
-                    height: 50px; /* Définit la hauteur fixe du champ de saisie à 50 pixels */
-                    border-radius: 15px; /* Arrondit les coins du champ avec un rayon de 15 pixels */
-                    /* --- Bordure et Ombre --- */
-                    box-shadow: 2px 2px 6px var(--text-color-white); /* Ajoute une ombre portée pour détacher le bouton du fond */
-                    /* --- Couleurs et Police (Harmonisé avec le bouton) --- */
-                    background-color: var(--btn-bg-color); /* Applique la variable de fond définie */
-                    color: var(--text-color-white); /* Applique la variable de couleur de police définie */
-                    font-family: var(--main-font); /* Applique la variable de police définie */
-                    font-size: 20px; /* Définit la taille de la police à 20 pixels */
-                    font-weight: bold; /* Met le texte en gras */
-                    /* --- Alignement et Comportement --- */
-                    text-align: center; /* Centre le texte horizontalement à l'intérieur du champ */
-                    outline: none; /* Supprime le contour bleu par défaut du navigateur lors de la sélection */
-                    margin-bottom: 58px; /* Ajoute un grand espace de 58 pixels sous chaque champ pour les séparer */
-                }
-
                 /* --- Effet au Focus (Quand on clique dans le champ) --- */
                 /* "textarea" ajouté : seule .day-textarea (bloc Activités) en est une dans
                    toute l'app, donc ça l'aligne sur l'effet des inputs (bloc Logement) sans
@@ -283,18 +273,14 @@
                     color: #9e9e9e;
                 }
 
-                /* --- GESTION DU DERNIER CHAMP --- */
-                .input-field:last-child {
-                    /* Sélectionne uniquement le dernier élément de la liste des champs */
-                    margin-bottom: 0; /* Supprime la marge inférieure du dernier champ pour éviter un espace vide inutile en bas */
-                }
-
-            /* ============================== */
-            /* d. STYLE DU BOUTON "CONNEXION" */
-            /* ============================== */
+            /* ============================================= */
+            /* d. STYLE DES BOUTONS "CONNEXION" / "CRÉATION"  */
+            /* ============================================= */
                 /* Bouton "pressable" : dégradé + liseré clair en haut + fine bordure
-                   basse plus sombre (épaisseur), qui s'aplatit légèrement au clic. */
-                .btn-connexion {
+                   basse plus sombre (épaisseur), qui s'aplatit légèrement au clic.
+                   .btn-create (écran d'inscription) partage exactement ce style --
+                   même mallette, mêmes boutons, seul le texte diffère. */
+                .btn-connexion, .btn-create {
                     width: 100%;
                     height: 50px;
                     border: none;
@@ -314,7 +300,7 @@
                         0 10px 18px rgba(38,70,83,.28);
                     transition: transform .08s ease, box-shadow .08s ease;
                 }
-                .btn-connexion:active {
+                .btn-connexion:active, .btn-create:active {
                     transform: translateY(2px);
                     box-shadow:
                         inset 0 1px 0 rgba(255,255,255,.25),
@@ -379,88 +365,26 @@
         /* ======================================= */
         /* 02. ÉCRAN DE CRÉATION DE COMPTE (MODAL) */
         /* ======================================= */
+            /* Contenu harmonisé avec .login-screen : .login-body/.login-card-wrap/
+               .login-card/.field-group/.btn-connexion sont réutilisées telles quelles
+               (voir leurs définitions dans la section "Page d'accueil de la PWA") --
+               #signup-screen ne fait plus que positionner l'écran en plein cadre,
+               .login-body gère tout son propre agencement interne. */
             #signup-screen {
                 display: none; /* Cache l'écran par défaut */
-                /* --- Configuration du Parent (Centrage Global) --- */
-                flex-direction: column; /* Empile les éléments verticalement (Bouton -> Titre -> Formulaire) */
-                align-items: center; /* CENTRE HORIZONTALEMENT tous les enfants au milieu de l'écran */
-                justify-content: center; /* Centrage vertical total */
-                /* --- Dimensions et Position --- */
-                position: fixed; /* Fixe l'écran par rapport à la fenêtre */
+                position: fixed;
                 top: 0;
                 left: 0;
                 width: 100%;
-                height: 100%; /* Prend tout l'écran */
-                background-color: var(--couleur-fond-modal); /* Applique la couleur de fond */
+                height: 100%;
+                background-color: var(--couleur-fond-modal);
                 z-index: 200; /* Place l'écran au-dessus de tout le reste */
-                /* --- Espacement --- */
-                padding-top: 40px; /* Ajoute un espace en haut pour ne pas coller au bord */
-                box-sizing: border-box;    /* Inclut le padding dans la hauteur totale */
-                overflow-y: auto; /* Permet le défilement si le contenu est trop long sur petit écran */
+                overflow: hidden; /* .login-body gère son propre défilement interne */
             }
 
             #signup-screen.active {
-                display: flex; /* Affiche l'écran en mode Flexbox quand la classe "active" est ajoutée */
+                display: block;
             }
-
-            /* ==================== */
-            /* a. Titres de l'écran */
-            /* ==================== */
-                /* --- Titre de la fenêtre ouverte --- */
-                .signup-subtitle {
-                    background: url('icons/iconbig.png') no-repeat left center;
-                    background-size: 50px auto; /* Ajuste la hauteur du logo à 50px (à modifier selon votre logo) */
-                    padding-left: 60px; /* Crée l'espace : largeur du logo (50px) + marge (10px) */
-                    font-family: var(--main-font); /* Applique la variable de police définie */
-                    font-size: clamp(20px, 6vw, 34px); /* Réduit (était clamp(32px, 9vw, 58px)) : même bug potentiel que le h1 principal, avec un texte plus long ("Nouveau voyageur") et white-space:nowrap forcé ci-dessous -- risque de débordement encore plus élevé */
-                    color: var(--titre-h1-color); /* Conserve la couleur bleue originale de la marque */
-                    margin: 0 0 40px 0; /* Ajoute un grand espace en bas pour séparer du formulaire */
-                    font-weight: bold; /* Met le texte en gras */
-                    text-shadow: 6px 4px 3px #A7D3C1; /* Ajoute une ombre portée au texte */
-                    text-align: center; /* Centre le texte horizontalement */
-                    display: inline-block; /* Permet au bloc de se centrer via le parent et de contenir le background */
-                    white-space: nowrap; /* Optionnel : force le titre à rester sur une seule ligne si le texte est court */
-                    line-height: 1.2; /* Ajuste l'interligne pour un bon alignement vertical avec le logo */
-                }
-
-            /* ========================== */
-            /* b. Conteneur du formulaire */
-            /* ========================== */
-                .signup-form {
-                    display: flex; /* Active Flexbox pour aligner les champs */
-                    flex-direction: column; /* Empile les champs verticalement */
-                    align-items: center; /* Centre les champs */
-                    width: 100%; /* Prend toute la largeur disponible */
-                    max-width: 400px; /* Limite la largeur du formulaire sur les grands écrans */
-                    margin-top: 20px; /* Espace supplémentaire sous le titre */
-                }
-
-            /* ============================ */
-            /* c. Bouton Création de Compte */
-            /* ============================ */
-                .btn-create {
-                    width: 250px; /* Même largeur que le bouton connexion */
-                    height: 50px; /* Même hauteur */
-                    margin-top: 20px; /* Espacement au-dessus du bouton */
-                    border-radius: 15px; /* Angles arrondis */
-                    /*border: 2px solid var(--btn-accent-border); /* Applique la variable de bordure définie */
-                    box-shadow: 2px 2px 6px var(--text-color-white); /* Ajoute une ombre portée pour détacher le bouton du fond */
-                    background-color: var(--btn-accent-bg); /* Applique la variable de fond définie */
-                    color: var(--text-color-second); /* Applique la variable de couleur de police définie */
-                    text-shadow: 1px 1px 0px black;
-                    font-family: var(--main-font); /* Applique la variable de police définie */
-                    font-size: 22px; /* Taille du texte */
-                    font-weight: bold; /* Texte en gras */
-                    cursor: pointer; /* Curseur main */
-                    transition: transform 0.1s ease, background-color 0.2s; /* Animation fluide */
-                    -webkit-tap-highlight-color: transparent; /* Supprime la surbrillance bleue par défaut au clic/toucher */
-                }
-
-                /* --- Effet au Clic du Bouton New --- */
-                .btn-create:active {
-                    transform: scale(0.98); /* Effet d'enfoncement au clic */
-                    box-shadow: 1px 1px 2px rgba(0, 0, 0, 0.6); /* Ombre réduite au clic */
-                }
 
             /* =================== */
             /* d. Bouton de Retour */
@@ -635,11 +559,11 @@
                     font-weight: bold; /* Met le titre en gras */
         
                     /* Intégration du Logo */
-                    background: url('icons/iconbig.png') no-repeat left center; /* Charge le logo depuis le dossier icons et le place à gauche */
-                    background-size: 40px auto; /* Redimensionne la hauteur du logo à 50px en gardant les proportions */
-                    padding-left: 55px; /* Décale le texte vers la droite pour laisser place au logo (50px + 5px d'espace) */
-                    line-height: 1.2; /* Ajuste la hauteur de ligne pour un bon alignement vertical */
-                    display: inline-block; /* Permet au background de s'appliquer correctement sur la largeur du texte */
+                /*  background: url('icons/iconbig.png') no-repeat left center; /* Charge le logo depuis le dossier icons et le place à gauche */
+                /*  background-size: 40px auto; /* Redimensionne la hauteur du logo à 50px en gardant les proportions */
+                /*  padding-left: 55px; /* Décale le texte vers la droite pour laisser place au logo (50px + 5px d'espace) */
+                /*  line-height: 1.2; /* Ajuste la hauteur de ligne pour un bon alignement vertical */
+                /*  display: inline-block; /* Permet au background de s'appliquer correctement sur la largeur du texte */
                 }
 
             /* ============================================== */
@@ -2544,22 +2468,56 @@
                     <button class="btn-back" id="btnBack" aria-label="Retour">&#8592; <!-- Utilise une entité HTML pour une flèche gauche, ou le texte "Retour" -->
                     </button>
 
-                <!-- ============= -->
-                <!-- b. Sous-titre -->
-                <!-- ============= -->
-                        <h2 class="signup-subtitle">Nouveau voyageur</h2> <!-- Définit un titre de niveau 2 -->
+                <!-- ==================================================================== -->
+                <!-- Contenu harmonisé avec .login-screen : même mallette (poignée derrière,
+                     lanières devant), mêmes champs en creux, même bouton pressable -- seuls
+                     le titre, l'accroche et les libellés changent. -->
+                <!-- ==================================================================== -->
+                    <div class="login-body">
+                        <img class="login-emblem" src="icons/iconbig.png" alt="HolyPlanner">
+                        <h2 class="login-title">Nouveau voyageur</h2>
+                        <p class="login-tagline">Crée ton compte pour commencer à planifier</p>
 
-                <!-- ========================= -->
-                <!-- c. Formulaire de création -->
-                <!-- ========================= -->
-                    <div class="signup-form"> <!-- Ouvre le conteneur du contenu -->
-                        <!-- Champ Pseudo (Max 12 caractères) -->
-                        <input type="text" class="input-field" id="newPseudo" placeholder="Pseudo (max 12)" maxlength="12">
-                        <!-- Champ Mot de passe (4 chiffres) -->
-                        <input type="password" class="input-field" id="newMdp" placeholder="Code (4 chiffres)" maxlength="4" pattern="[0-9]{4}" inputmode="numeric">
-                        <!-- Bouton Création de Compte -->
-                        <button class="btn-create" id="btnCreateAccount">Création compte</button>
-                    </div> <!-- Ferme le conteneur du contenu -->
+                        <!-- La poignée est un élément FRÈRE placé avant .login-card : le fond
+                             opaque de la mallette la recouvre là où elles se chevauchent. -->
+                        <div class="login-card-wrap">
+                            <svg class="case-handle" viewBox="0 0 108 52" aria-hidden="true">
+                                <defs>
+                                    <linearGradient id="handleGradSignup" x1="0" y1="0" x2="1" y2="1">
+                                        <stop offset="0%" stop-color="#57ACA3"/>
+                                        <stop offset="55%" stop-color="#2E7D7A"/>
+                                        <stop offset="100%" stop-color="#1B3E3C"/>
+                                    </linearGradient>
+                                </defs>
+                                <path fill-rule="evenodd" fill="url(#handleGradSignup)" d="M20,0 L88,0 Q100,0 100,10 L100,42 Q100,52 90,52 L18,52 Q8,52 8,42 L8,10 Q8,0 20,0 Z M30,14 L78,14 Q86,14 86,22 L86,30 Q86,38 78,38 L30,38 Q22,38 22,30 L22,22 Q22,14 30,14 Z"/>
+                                <path fill="none" stroke="#123230" stroke-width="1.4" opacity="0.55" d="M30,14 L78,14 Q86,14 86,22 L86,30 Q86,38 78,38 L30,38 Q22,38 22,30 L22,22 Q22,14 30,14 Z"/>
+                            </svg>
+
+                            <!-- ========================= -->
+                            <!-- c. Formulaire de création -->
+                            <!-- ========================= -->
+                                <div class="login-card"> <!-- Ouvre la mallette -->
+                                    <!-- Lanières : enfants de .login-card, donc rendues par-dessus. -->
+                                    <div class="case-strap left"></div>
+                                    <div class="case-strap right"></div>
+
+                                    <!-- Champ Pseudo (Max 12 caractères) -->
+                                    <div class="field-group">
+                                        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="8" r="4" stroke="#264653" stroke-width="2"/><path d="M4 20c1.5-4 5-6 8-6s6.5 2 8 6" stroke="#264653" stroke-width="2" stroke-linecap="round"/></svg>
+                                        <input type="text" class="field" id="newPseudo" placeholder="Pseudo (max 12)" maxlength="12">
+                                    </div>
+                                    <!-- Champ Mot de passe (4 chiffres) -->
+                                    <div class="field-group">
+                                        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2" stroke="#264653" stroke-width="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3" stroke="#264653" stroke-width="2" stroke-linecap="round"/></svg>
+                                        <input type="password" class="field" id="newMdp" placeholder="Code (4 chiffres)" maxlength="4" pattern="[0-9]{4}" inputmode="numeric">
+                                    </div>
+                                    <!-- Bouton Création de Compte -->
+                                    <button class="btn-create" id="btnCreateAccount">Création compte</button>
+                                </div> <!-- Ferme la mallette -->
+                        </div>
+
+                        <p class="signin-hint">Déjà un compte ? Reviens en arrière pour te connecter.</p>
+                    </div>
             </div> <!-- Ferme l'écran d'inscription -->
         <!-- ================================================================ -->
         <!-- 03. ÉCRAN DASHBOARD (Visible uniquement après connexion réussie) -->
