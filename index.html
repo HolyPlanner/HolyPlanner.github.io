@@ -1672,80 +1672,84 @@
             /* ============================================== */
             /* d. Conteneur principal (tout l'espace restant) */
             /* ============================================== */
+                /* Reprend la structure de .day-detail-content / .trip-home-container :
+                   contenu qui s'empile en haut avec son propre scroll (plutôt que centré
+                   verticalement), pour accueillir les cartes pleines + les vagues de pied
+                   d'écran (voir .dashboard-footer-wave) sans jamais rien couper. */
                 .finance-detail-content {
                     flex: 1; /* Force ce conteneur à prendre tout l'espace vertical restant sous le header */
                     width: 100%; /* Prend toute la largeur disponible */
                     max-width: 600px; /* Limite la largeur à 600px sur les grands écrans */
                     margin: 0 auto; /* Centre le bloc si l'écran est large */
-                    padding: 20px; /* Pas de padding haut (géré par le résumé) */
-                    gap: 20px; /* Espace entre les blocs */
+                    padding: 20px;
+                    gap: 12px; /* Espace entre les cartes, aligné sur .trip-stats */
                     box-sizing: border-box; /* Inclut le padding dans le calcul de la largeur totale */
                     display: flex; /* Active Flexbox pour structurer le contenu */
-                    flex-direction: column; /* Empile les sections verticalement */
-                    justify-content: center; /* Centre le contenu verticalement (ou 'flex-start' pour coller en haut) */
+                    flex-direction: column; /* Empile les cartes verticalement */
+                    justify-content: flex-start; /* Colle le contenu en haut, comme les autres écrans */
                     align-items: stretch; /* Force les enfants à prendre toute la largeur disponible */
                     height: 100%; /* S'assure de remplir le parent flexible */
                     min-height: 0; /* IMPORTANT : Permet à flex de réduire la taille si besoin */
-                    overflow-y: hidden; /* Empêche le scroll */
+                    overflow-y: auto; /* Scroll interne si le contenu dépasse (petit écran) */
+                    -webkit-overflow-scrolling: touch;
                 }
-                    /*Crée la barre horizontale en haut de l'écran contenant les trois indicateurs financiers */
-                    .finance-summary {
-                        display: flex;
-                        justify-content: space-around;
-                        padding: 20px; 
-                        background: #f9f9f9;
-                        border-radius: 8px;
-                        flex-shrink: 0; /* Empêche l'écrasement */
-                        margin-top: 20px; /*20px depuis le haut */
-                        margin-bottom: 0; /* On laisse le flux gérer le bas ou on met une valeur si besoin */
-                    }
-                    /*Stylise les cartes individuelles et rend les montants grands et gras */
+
+                /* --- Cartes pleines : même famille visuelle que .stat-card (trip-home)   */
+                /* et .shelf-card (dashboard) -- fond #FFFBF2, coins arrondis, ombre douce. */
                     .finance-card {
-                        width: fit-content; /* La carte s'ajuste à son contenu (pas de retour à la ligne : déjà validé sur 1 seule ligne à 100%) */
-                        min-width: 60%; /* Garde une largeur minimale pour laisser de la place au text-align:right */
-                        max-width: 100%; /* Sécurité : jamais plus large que l'écran */
-                        margin: 0 auto; /* Centre la carte horizontalement sur l'écran */
-                        text-align: right; /* Aligne le contenu (label + valeur + devise) à droite dans la carte */
+                        background-color: #FFFBF2;
+                        border-radius: 16px;
+                        padding: 14px 16px;
+                        box-shadow: 0 5px 12px rgba(38,70,83,.14); /* même ombre que .stat-card */
+                        display: flex;
+                        flex-direction: column;
+                        gap: 6px;
+                    }
+                    /* Label icône + petites majuscules colorées, identique à .stat-label */
+                    .finance-card-label {
+                        font-size: 10.5px; font-weight: bold; letter-spacing: .05em; text-transform: uppercase;
+                        color: var(--btn-accent-bg);
+                        display: flex; align-items: center; gap: 6px;
+                    }
+                    .finance-card-label svg { width: 13px; height: 13px; flex-shrink: 0; }
+
+                    /* --- Carte Budget : dépenses / total + pourcentage + barre de progression --- */
+                    .finance-budget-row { display: flex; align-items: baseline; justify-content: space-between; }
+                    .finance-budget-values { font-size: 16px; font-weight: bold; color: var(--titre-h1-color); display: flex; align-items: baseline; }
+                    .finance-budget-percent { font-size: 15px; font-weight: bold; color: var(--btn-accent-bg); }
+                    /* .budget-track / .budget-fill sont réutilisées telles quelles (voir section
+                       04, ÉCRAN D'ACCUEIL DU VOYAGE) : la carte Budget de cet écran et celle de
+                       trip-home-screen restent synchronisées par le même JS (updateBudgetBar). */
+
+                    /* --- Carte Reste à dépenser --- */
+                    .finance-value-row { display: flex; align-items: baseline; }
+                    .finance-value {
+                        font-size: 20px;
                         font-weight: bold;
-                        font-size: 20px; /* Légèrement réduit (était 24px) pour tenir sur une ligne sur mobile */
-                        color: var(--titre-h1-color);
-                        white-space: nowrap; /* Empêche tout retour à la ligne du contenu de la carte */
+                        color: var(--titre-h1-color); /* Couleur basculée en vert/rouge par le JS */
                     }
 
-                    .finance-value {
-                        display: inline-block;
-                        font-size: 20px; /* Fixe plutôt que relatif (1.5em du parent pouvait devenir trop grand) */
-                        font-weight: bold;
-                        color: var(--titre-h1-color);
-                        margin-left: 8px;
-                    }
-                    /*Positionne la zone de saisie du lien Tricount au centre vertical et horizontal de la page */
-                    .tricount-section {
-                        /*margin: auto; /* Centre l'élément verticalement dans l'espace restant */
-                        margin-top: auto; 
-                        margin-bottom: auto;
-                        align-self: center; /* Centre l'élément horizontalement */
-                        text-align: center;
-                        width: 100%; /* Prend la largeur disponible (ou mettez max-width: 400px) */
-                        max-width: 500px; /* Optionnel : évite que ce soit trop large sur grand écran */
-                    }
+                    .currency { font-size: 14px; font-weight: bold; color: var(--titre-h1-color); margin-left: 3px; }
 
                     .finance-input {
                         background: transparent;
                         border: none;
-                        border-bottom: 1px solid #ccc; /* Petite ligne sous le chiffre */
-                        font-size: 18px; /* Légèrement réduit (était 20px) */
+                        border-bottom: 1px solid transparent; /* Ligne visible seulement au survol/focus */
+                        font-family: var(--main-font);
+                        font-size: 16px;
                         font-weight: bold;
                         color: var(--titre-h1-color);
                         text-align: right;
-                        width: 80px; /* Réduit (était 100px) pour laisser de la place au label sur une seule ligne */
-                        padding: 5px;
+                        width: 55px;
+                        padding: 0 2px;
                     }
+                    .finance-input-total { width: 62px; }
 
+                    .finance-input:hover,
                     .finance-input:focus {
-                        outline: none;
-                        border-bottom: 1px solid #006400; /* Couleur verte au clic */
+                        border-bottom-color: var(--btn-accent-bg); /* Remplace l'ancien vert fixe : cohérent avec l'accent de l'app */
                     }
+                    .finance-input:focus { outline: none; }
 
                     /* Cache les flèches du input number */
                     .finance-input::-webkit-outer-spin-button,
@@ -1754,30 +1758,60 @@
                         margin: 0;
                     }
 
-                    /*Crée la ligne de saisie où l'utilisateur tape l'URL, en s'assurant que le bouton "Ouvrir" est juste à côté, le tout centré.*/
-                    /* Conteneur de la ligne */
+                    /* --- Carte Tricount --- */
+                    .finance-card-tricount { text-align: center; }
+                    .finance-card-tricount .finance-card-label { justify-content: center; }
+
+                    /* Ligne de saisie de l'URL + bouton "Ouvrir", côte à côte */
                     .input-group-tricount {
                         display: flex;
-                        gap: 10px;
-                        justify-content: center; /* Centre le champ et le bouton dans la ligne */
-                        width: 100%; /* Prend toute la largeur de la section parente */
-                        max-width: 500px; /* Optionnel : évite que la ligne soit trop large sur PC */
-                        margin: 10px auto 0 auto; /* Petite marge haut pour aérer le titre de la section */
-                        width: 100%;
+                        gap: 8px;
+                        margin-top: 4px;
                     }
-                    /* Le champ de saisie */
+                    /* Le champ de saisie : fond crème, bordure discrète (remplace l'ancien style
+                       "form" en majuscule .day-input, pensé pour l'écran Organisation et pas pour
+                       une carte pleine crème comme ici). */
                     .input-group-tricount input {
-                        flex: 1; /* Prend tout l'espace disponible restant (mieux que width: 70%) */
-                        padding: 10px;
-                        border: 1px solid #ccc;
-                        border-radius: 4px;
+                        flex: 1;
                         min-width: 0; /* Empêche le champ de dépasser si l'écran est très petit */
-                        text-align: right;
-                        font-size: 20px;
+                        padding: 10px 12px;
+                        border: 1px solid rgba(38,70,83,.15);
+                        border-radius: 10px;
+                        background: var(--couleur-fond-modal);
+                        color: var(--titre-h1-color);
+                        font-family: var(--main-font);
+                        font-weight: bold;
+                        font-size: 14px;
+                        box-sizing: border-box;
                     }
-                    /* Le bouton (ajout recommandé pour l'alignement) */
-                    .input-group-tricount button {
+                    .input-group-tricount input:focus {
+                        outline: none;
+                        border-color: var(--btn-accent-bg);
+                    }
+                    /* Le bouton "Ouvrir" : pilule pleine accent, même famille que .btn-create-trip
+                       / #time-picker-confirm, remplace l'ancien bouton bleu-bordé générique. */
+                    .btn-tricount-open {
+                        flex-shrink: 0;
+                        border: none;
+                        border-radius: 20px;
+                        padding: 0 16px;
+                        background: var(--btn-accent-bg);
+                        color: #FFFBF2;
+                        font-family: var(--main-font);
+                        font-weight: bold;
+                        font-size: 13px;
+                        cursor: pointer;
                         white-space: nowrap; /* Empêche le texte du bouton de passer à la ligne */
+                        -webkit-tap-highlight-color: transparent;
+                        transition: transform 0.1s ease;
+                    }
+                    .btn-tricount-open:active { transform: scale(0.96); }
+
+                    /* --- Vagues de pied d'écran : même motif que .dashboard-footer-wave,       */
+                    /* poussées en bas de l'écran (margin-top:auto) plutôt qu'après les actions   */
+                    /* comme sur le dashboard, faute de bloc flex:1 équivalent à .trips-shelf ici. */
+                    .finance-detail-content .dashboard-footer-wave {
+                        margin-top: auto;
                     }
 
         /* =============== */
@@ -2970,33 +3004,64 @@
                     <h2 class="day-home-title">Finances</h2> <!-- Titre fixe -->
                 </div>
 
-                <!-- Contenu principal (à remplir plus tard) -->
+                <!-- Contenu principal -->
                 <div class="finance-detail-content">
+                    <!-- Carte Budget : dépenses / budget total, pourcentage et barre de
+                         progression -- reprend la carte "Budget" de trip-home-screen, restée
+                         synchronisée via le même JS (updateBudgetBar). -->
                     <div class="finance-card">
-                        <label>Budget Total</label>
-                        <input type="number" id="finance-budget-input" class="finance-input" value="1000">
-                        <span class="currency">€</span>
+                        <div class="finance-card-label">
+                            <svg viewBox="0 0 24 24" fill="none"><path d="M4 8a2 2 0 012-2h13a1 1 0 011 1v10a2 2 0 01-2 2H6a2 2 0 01-2-2V8z" stroke="#2E7D7A" stroke-width="2"/><path d="M15 12h4" stroke="#2E7D7A" stroke-width="2" stroke-linecap="round"/></svg>
+                            Budget
+                        </div>
+                        <div class="finance-budget-row">
+                            <div class="finance-budget-values">
+                                <input type="number" id="finance-expenses-input" class="finance-input" value="200"> / <input type="number" id="finance-budget-input" class="finance-input finance-input-total" value="1000"><span class="currency">€</span>
+                            </div>
+                            <div class="finance-budget-percent" id="finance-percent">0%</div>
+                        </div>
+                        <div class="budget-track"><div class="budget-fill" id="finance-budget-fill"></div></div>
                     </div>
+
+                    <!-- Carte Reste à dépenser -->
                     <div class="finance-card">
-                        <label>Dépenses Actuelles</label>
-                        <input type="number" id="finance-expenses-input" class="finance-input" value="200">
-                        <span class="currency">€</span>
+                        <div class="finance-card-label">
+                            <svg viewBox="0 0 24 24" fill="none"><path d="M12 21s-6-5-6-10a6 6 0 0112 0c0 5-6 10-6 10z" stroke="#2E7D7A" stroke-width="2"/><circle cx="12" cy="11" r="2.2" stroke="#2E7D7A" stroke-width="2"/></svg>
+                            Reste à dépenser
+                        </div>
+                        <div class="finance-value-row">
+                            <span id="finance-remaining-display" class="finance-value">0</span><span class="currency">€</span>
+                        </div>
                     </div>
-                    <div class="finance-card">
-                        <label>Reste à dépenser</label>
-                        <span id="finance-remaining-display" class="finance-value">0</span>
-                        <span class="currency">€</span>
-                    </div>
-                    <!-- CENTRE : Lien Tricount -->
-                    <div class="tricount-section">
-                        <label for="tricount-url">Lien de partage Tricount</label>
+
+                    <!-- Carte Tricount -->
+                    <div class="finance-card finance-card-tricount">
+                        <label for="tricount-url" class="finance-card-label">Lien de partage Tricount</label>
                         <div class="input-group-tricount">
-                            <input type="url" id="tricount-url" placeholder="https://tricount.com/..." class="day-input">
-                            <button id="btn-open-tricount" class="btn-nav" title="Ouvrir Tricount">
+                            <input type="url" id="tricount-url" placeholder="https://tricount.com/...">
+                            <button id="btn-open-tricount" class="btn-tricount-open" title="Ouvrir Tricount">
                                 Ouvrir &#8599;
                             </button>
                         </div>
                     </div>
+
+                    <!-- Vagues de pied d'écran, même motif que le dashboard (purement décoratif) -->
+                    <svg class="dashboard-footer-wave" viewBox="0 0 336 100" preserveAspectRatio="none" aria-hidden="true">
+                        <defs>
+                            <linearGradient id="footerWaveFrontFinance" x1="0" y1="0" x2="1" y2="0">
+                                <stop offset="0%" stop-color="#3E8079"/>
+                                <stop offset="45%" stop-color="#C97C4A"/>
+                                <stop offset="100%" stop-color="#F7A93E"/>
+                            </linearGradient>
+                        </defs>
+                        <path d="M0,58 C110,32 220,32 336,52 L336,100 L0,100 Z" fill="#1B3E5C" opacity="0.85"/>
+                        <path d="M0,38 C60,16 120,54 200,46 C258,40 300,54 336,50 L336,100 L0,100 Z" fill="#2E6E6B"/>
+                        <path d="M0,38 C60,16 120,54 200,46 C258,40 300,54 336,50" fill="none" stroke="#1B3A3D" stroke-width="1.4" opacity="0.5"/>
+                        <path d="M0,62 C85,74 145,20 232,25 C280,28 312,45 336,42 L336,100 L0,100 Z" fill="#AFCFC8"/>
+                        <path d="M0,62 C85,74 145,20 232,25 C280,28 312,45 336,42" fill="none" stroke="#6E9490" stroke-width="1.2" opacity="0.55"/>
+                        <path d="M0,74 C92,88 162,42 242,44 C282,45 312,60 336,56 L336,100 L0,100 Z" fill="url(#footerWaveFrontFinance)"/>
+                        <path d="M0,74 C92,88 162,42 242,44 C282,45 312,60 336,56" fill="none" stroke="#7A4A22" stroke-width="1.2" opacity="0.4"/>
+                    </svg>
                 </div>
             </div>
 
@@ -4348,19 +4413,25 @@
                             document.getElementById('trip-home-screen').classList.add('active'); // Ajoute la classe 'active' pour rendre l'écran visible (flex)
                     }
 
-                    // Met à jour la largeur (et la couleur au-delà de 100%) de la barre de
-                    // progression du budget (#budget-fill), appelée depuis openTripHome() et
-                    // depuis updateAllDisplays() (écran Finance) pour rester synchronisées.
+                    // Met à jour la largeur (et la couleur au-delà de 100%) de TOUTES les
+                    // barres de progression du budget présentes dans la page (#budget-fill sur
+                    // trip-home-screen ET #finance-budget-fill sur l'écran Finance, qui partagent
+                    // toutes deux la classe .budget-fill) -- appelée depuis openTripHome() et
+                    // depuis updateAllDisplays() pour rester synchronisées entre les deux écrans.
                     function updateBudgetBar(budget, expenses) {
-                        const fill = document.getElementById('budget-fill');
-                        if (!fill) return;
+                        const fills = document.querySelectorAll('.budget-fill');
+                        if (!fills.length) return;
+                        let width = '0%';
+                        let background = null;
                         if (budget > 0 && expenses >= 0) {
                             const ratio = expenses / budget;
-                            fill.style.width = Math.min(Math.round(ratio * 100), 100) + '%';
-                            fill.style.background = (ratio <= 1) ? 'var(--btn-accent-bg)' : '#8B0000';
-                        } else {
-                            fill.style.width = '0%';
+                            width = Math.min(Math.round(ratio * 100), 100) + '%';
+                            background = (ratio <= 1) ? 'var(--btn-accent-bg)' : '#8B0000';
                         }
+                        fills.forEach(fill => {
+                            fill.style.width = width;
+                            if (background) fill.style.background = background;
+                        });
                     }
 
                         // =======================
@@ -4372,14 +4443,22 @@
                                 const budgetInput = document.getElementById('finance-budget-input');
                                 const expensesInput = document.getElementById('finance-expenses-input');
                                 const remainingDisplay = document.getElementById('finance-remaining-display');
+                                const percentDisplay = document.getElementById('finance-percent');
 
                                 if (budgetInput && expensesInput && remainingDisplay) {
                                     budgetInput.value = budget;
                                     expensesInput.value = expenses;
-                                    
+
                                     const remaining = budget - expenses;
                                     remainingDisplay.textContent = remaining.toLocaleString('fr-FR');
                                     remainingDisplay.style.color = remaining < 0 ? '#8B0000' : '#006400';
+
+                                    if (percentDisplay) {
+                                        const ratio = budget > 0 ? expenses / budget : 0;
+                                        percentDisplay.innerText = Math.round(ratio * 100) + '%';
+                                        percentDisplay.style.color = (ratio <= 1) ? 'var(--btn-accent-bg)' : '#8B0000';
+                                    }
+                                    updateBudgetBar(budget, expenses); // Synchronise la barre de progression de la carte Budget
                                 }
 
                                 // 2. Gestion du lien Tricount (Existant)
@@ -4521,6 +4600,12 @@
                                             percentEl.innerText = Math.round(ratio * 100) + "%";
                                             percentEl.style.color = (ratio <= 1) ? "#006400" : "#8B0000";
                                         }
+                                    }
+                                    const financePercentEl = document.getElementById('finance-percent');
+                                    if (financePercentEl) {
+                                        const ratio = budget > 0 ? expenses / budget : 0;
+                                        financePercentEl.innerText = Math.round(ratio * 100) + '%';
+                                        financePercentEl.style.color = (ratio <= 1) ? 'var(--btn-accent-bg)' : '#8B0000';
                                     }
                                     updateBudgetBar(budget, expenses); // Synchronise la barre de progression de la carte Budget
 
