@@ -97,64 +97,142 @@
                 }
                 /* Ferme le bloc de style du body */
 
-            /* ============================== */
-            /* b. Style du Header et du Titre */
-            /* ============================== */
-                /* Début du style appliqué à l'en-tête sémantique */
-                header { /* Sélectionne l'élément header */
-                    padding: 20px; /* Ajoute un espacement intérieur de 20 pixels sur tous les côtés du header */
-                    padding-top: clamp(60px, 18vh, 148px); /* Fluide selon la hauteur d'écran : jusqu'à 148px sur grand écran, réduit sur les écrans bas (paysage, petits téléphones) */
-                    text-align: center; /* Centre horizontalement le contenu inline (comme le h1) dans le header */
-                    /*box-shadow: 0 2px 5px rgba(0,0,0,0.2); /* Ajoute une ombre portée légère sous le header pour le détacher du fond */
-                    width: 100%; /* S'assure que le header prend toute la largeur disponible */
-                    box-sizing: border-box; /* Inclut le padding dans le calcul de la largeur totale */
-                } /* Ferme le bloc de style du header */
+            /* ==================================================== */
+            /* b. Corps de l'écran de connexion : emblème + titre    */
+            /* ==================================================== */
+                /* Remplace l'ancien <header><h1> (logo minuscule en fond de texte) par
+                   un vrai moment d'accueil : le logo en grand, comme la photo héros du
+                   dashboard -- écran de connexion et dashboard se répondent visuellement. */
+                .login-body {
+                    position: relative;
+                    z-index: 1;
+                    height: 100%;
+                    overflow-y: auto; /* filet de sécurité sur les très petits écrans */
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    padding: 8vh 26px calc(24px + env(safe-area-inset-bottom));
+                    box-sizing: border-box;
+                }
+                .login-emblem {
+                    width: 25vw;
+                    max-width: 96px;
+                    height: auto;
+                    flex-shrink: 0;
+                    filter: drop-shadow(0 10px 16px rgba(38,70,83,.28));
+                }
+                .login-title {
+                    margin: 16px 0 4px;
+                    font-family: var(--main-font);
+                    font-size: clamp(24px, 8vw, 30px);
+                    font-weight: bold;
+                    color: var(--text-color-white);
+                    text-shadow: 3px 3px 0 rgba(167,211,193,.7);
+                }
+                .login-tagline {
+                    margin: 0 0 26px;
+                    font-family: var(--main-font);
+                    font-size: 13px;
+                    color: #5B7981;
+                    letter-spacing: .02em;
+                }
 
-                /* Début du style appliqué aux titres de niveau 1 (h1) */
-                h1 {
-                    /* Sélectionne les titres de niveau 1 (h1) */
-                    font-family: var(--main-font); /* Applique la variable de police définie */
-                    font-size: clamp(22px, 12vw, 42px); /* Fluide selon la hauteur d'écran : de 22px à 42px sinon 12% de la largeur*/
-                    color: var(--titre-h1-color); ; /* Applique la variable de couleur de titre h1 définie */
-                    margin: 0; /* Supprime les marges extérieures par défaut autour du titre */
-                    text-shadow: 6px 4px 3px #A7D3C1; /* Ajoute une ombre portée au texte */
-                    
-                    /* Ajout du Logo en arrière-plan */
-                    background: url('icons/iconbig.png') no-repeat left center; /* Insère le logo sans le répéter, aligné à gauche et centré verticalement par rapport au texte */
-                    
-                    /* --- Dimensions et Espacement --- */
-                    background-size: 60px auto; /* Ajuste la hauteur du logo à 50px en conservant ses proportions */
-                    
-                    /* Ajoute un espace à gauche pour que le texte ne chevauche pas le logo */
-                    padding-left: 65px; /* Valeur = largeur estimée du logo (50px) + espace de sécurité (10px) */
+            /* ==================================================== */
+            /* c. La mallette : poignée, lanières et champs          */
+            /* ==================================================== */
+                /* La poignée vient AVANT .login-card dans le HTML : le fond opaque de
+                   la mallette la recouvre là où elles se chevauchent (seule la partie
+                   qui dépasse au-dessus reste visible) -- comme sur le logo, où on ne
+                   voit jamais la poignée "posée sur" la valise. */
+                .login-card-wrap {
+                    position: relative;
+                    width: 100%;
+                    max-width: 300px;
+                    margin-top: 40px; /* laisse la place à la poignée qui dépasse au-dessus (voir .case-handle) sans chevaucher .login-tagline */
+                }
+                .login-card {
+                    position: relative;
+                    width: 100%;
+                    background: linear-gradient(160deg, #F6E0AE 0%, #EFD094 100%);
+                    border-radius: 26px;
+                    padding: 56px 22px 22px;
+                    box-sizing: border-box;
+                    box-shadow:
+                        0 2px 0 rgba(255,255,255,.35) inset,
+                        0 22px 14px -12px rgba(38,70,83,.30),
+                        0 10px 26px rgba(38,70,83,.30);
+                }
 
-                    /* Optionnel : assure que le logo et le texte sont bien alignés verticalement */
-                    display: inline-block; /* Permet au titre de prendre juste la place nécessaire pour être centré par le parent */
-                    line-height: 50px; /* Ajuste la hauteur de ligne pour aligner le texte avec le centre du logo */
-                    
-                    /* --- NOUVEAU : Gestion de l'unicité de la ligne --- */
-                    white-space: nowrap; /* Empêche impérativement le texte de passer à la ligne suivante */
-                    vertical-align: middle; /* Assure un alignement vertical parfait si d'autres éléments sont présents */
-                } /* Ferme le bloc de style du titre */
+                .case-handle {
+                    position: absolute;
+                    top: 0; left: 50%;
+                    transform: translate(-50%, -73%);
+                    width: 106px; height: 51px;
+                    display: block;
+                }
 
-            /* ========================= */
-            /* c. CONTENEUR DE CONNEXION */
-            /* ========================= */
-                .login-container {
-                    /* --- Positionnement Central Absolu --- */
-                    position: fixed; /* Fixe le conteneur par rapport à la fenêtre du navigateur, il reste visible même si on scrolle */
-                    top: 50%; /* Place le bord supérieur du conteneur à 50% de la hauteur de l'écran */
-                    left: 50%; /* Place le bord gauche du conteneur à 50% de la largeur de l'écran */
-                    transform: translate(-50%, -50%); /* Décale le conteneur de 50% de sa propre largeur et hauteur vers le haut-gauche pour un centrage parfait */
+                /* Lanières : ENFANTS de .login-card (rendues par-dessus son fond, donc
+                   toujours visibles), à l'extérieur de la zone de la poignée. */
+                .case-strap {
+                    position: absolute;
+                    top: 0;
+                    width: 24px; height: 60px;
+                    background: linear-gradient(to right, #D89A68 0%, var(--btn-second-color) 45%, #8F5A31 100%);
+                    border-radius: 0 0 9px 9px;
+                    transform: translateY(-18%);
+                    display: flex; align-items: flex-end; justify-content: center;
+                    padding-bottom: 10px;
+                    box-shadow: 0 3px 6px rgba(38,70,83,.2);
+                }
+                .case-strap::after {
+                    content: "";
+                    width: 8px; height: 8px;
+                    border-radius: 50%;
+                    background: radial-gradient(circle at 35% 30%, #FBDA9A, #E7B25C 55%, #B8802E 100%);
+                    box-shadow: 0 0 0 1.6px #6E4321;
+                }
+                .case-strap.left { left: calc(50% - 85px); }
+                .case-strap.right { left: calc(50% + 61px); }
 
-                    /* --- Alignement Interne des Éléments --- */
-                    display: flex; /* Active le mode Flexbox pour aligner les éléments enfants (les champs) */
-                    flex-direction: column; /* Empile les éléments enfants verticalement les uns sous les autres */
-                    align-items: center; /* Centre horizontalement tous les éléments enfants à l'intérieur du conteneur */
-
-                    /* --- Dimensions et Marges --- */
-                    width: 100%; /* Définit la largeur du conteneur à 100% de la fenêtre (utile pour le centrage flex) */
-                    margin-top: 20px; /* Ajoute un petit espace de sécurité de 20px en haut pour éviter la superposition avec le header */
+                /* --- Champs "en creux" (Pseudo / MDP), avec icône --- */
+                .field-group { position: relative; width: 100%; margin-bottom: 14px; }
+                .field-group svg {
+                    position: absolute;
+                    left: 16px; top: 50%;
+                    transform: translateY(-50%);
+                    width: 18px; height: 18px;
+                    pointer-events: none;
+                    opacity: .8;
+                }
+                .field {
+                    width: 100%;
+                    height: 50px;
+                    border-radius: 14px;
+                    border: none;
+                    background: linear-gradient(180deg, #93C0A9 0%, #ACD6C4 100%);
+                    box-shadow:
+                        inset 0 3px 5px rgba(27,55,50,.28),
+                        inset 0 -1px 0 rgba(255,255,255,.5);
+                    color: var(--text-color-white);
+                    font-family: var(--main-font);
+                    font-size: 15px;
+                    font-weight: bold;
+                    text-align: left;
+                    padding: 0 16px 0 46px;
+                    box-sizing: border-box;
+                    outline: none;
+                }
+                .field:focus {
+                    box-shadow:
+                        inset 0 3px 5px rgba(27,55,50,.28),
+                        inset 0 -1px 0 rgba(255,255,255,.5),
+                        0 0 0 3px rgba(46,125,122,.35);
+                }
+                .field::placeholder {
+                    color: var(--text-color-white);
+                    opacity: .6;
+                    font-weight: 600;
+                    font-size: 15px;
                 }
 
                 /* --- STYLE DES CHAMPS DE SAISIE (INPUTS) --- */
@@ -214,76 +292,89 @@
             /* ============================== */
             /* d. STYLE DU BOUTON "CONNEXION" */
             /* ============================== */
+                /* Bouton "pressable" : dégradé + liseré clair en haut + fine bordure
+                   basse plus sombre (épaisseur), qui s'aplatit légèrement au clic. */
                 .btn-connexion {
-                    /* --- Dimensions et Espacement --- */
-                    width: min(250px, 80vw); /* Identique aux champs de saisie : sécurité sur les appareils très étroits */
-                    height: 50px; /* Définit la hauteur du bouton à 50 pixels, identique aux champs de saisie */
-                    margin-top: 29px; /* Ajoute un espace de 29 pixels au-dessus du bouton pour le séparer du champ précédent */
-                    border-radius: 15px; /* Arrondit les coins du bouton avec un rayon de 15 pixels pour un style doux */
-                    /* --- Bordure et Ombre --- */
-                    box-shadow: 2px 2px 6px var(--text-color-white); /* Ajoute une ombre portée pour détacher le bouton du fond */
-                    /* --- Couleurs et Police --- */
-                    background-color: var(--btn-accent-bg); /* Applique la variable de fond définie */
-                    color: var(--text-color-second); /* Applique la variable de couleur de police définie */
-                    text-shadow: 1px 1px 0px black;
-                    font-family: var(--main-font); /* Applique la variable de police définie */
-                    font-size: 22px; /* Définit la taille du texte à 22 pixels, légèrement plus grand que les inputs */
-                    font-weight: bold; /* Met le texte en gras pour le rendre plus impactant */
-                    /* --- Comportement et Animation --- */
-                    -webkit-tap-highlight-color: transparent; /* Supprime la surbrillance bleue par défaut au clic/toucher */
-                    cursor: pointer; /* Change le curseur en forme de main au survol pour indiquer qu'on peut cliquer */
-                    transition: transform 0.1s ease, background-color 0.2s; /* Anime le changement de taille et de couleur de fond de manière fluide */
+                    width: 100%;
+                    height: 50px;
+                    border: none;
+                    border-radius: 14px;
+                    background: linear-gradient(165deg, #3F958D 0%, #235F5C 100%);
+                    color: #FFFBF2;
+                    font-size: 16px;
+                    font-weight: bold;
+                    letter-spacing: .02em;
+                    margin-top: 6px;
+                    font-family: var(--main-font);
+                    cursor: pointer;
+                    -webkit-tap-highlight-color: transparent;
+                    box-shadow:
+                        inset 0 1px 0 rgba(255,255,255,.35),
+                        0 3px 0 rgba(19,49,47,.4),
+                        0 10px 18px rgba(38,70,83,.28);
+                    transition: transform .08s ease, box-shadow .08s ease;
                 }
-
-                /* --- Effet au Clic (Active) --- */
                 .btn-connexion:active {
-                    transform: scale(0.98); /* Réduit très légèrement la taille du bouton (98%) pour simuler un enfoncement */
-                    box-shadow: 1px 1px 2px rgba(0, 0, 0, 0.6); /* Réduit l'ombre portée pour accentuer l'effet de profondeur lors du clic */
+                    transform: translateY(2px);
+                    box-shadow:
+                        inset 0 1px 0 rgba(255,255,255,.25),
+                        0 1px 0 rgba(19,49,47,.4),
+                        0 4px 10px rgba(38,70,83,.22);
                 }
 
             /* ======================== */
             /* e. STYLE DU BOUTON "NEW" */
             /* ======================== */
+                /* Même traitement "pressable" que .btn-connexion -- var(--btn-second-color)
+                   (cuir) reste le point milieu du dégradé, la teinte de fond ne change pas. */
                 .btn-new {
-                    /* --- Dimensions et Forme --- */
-                    width: 80px; /* Définit la largeur du bouton rond à 80 pixels */
-                    height: 80px; /* Définit la hauteur à 80 pixels (identique à la largeur pour obtenir un cercle parfait) */
-                    border-radius: 50%; /* Arrondit les angles à 50% pour transformer le carré en cercle */
-                    /* --- ¨Positionnement --- */
-                    position: fixed; /* Fixe le bouton par rapport à la fenêtre du navigateur */
-                    bottom: calc(30px + env(safe-area-inset-bottom)); /* S'adapte automatiquement si une barre système est présente */
-                    left: 50%; /* Place le bord gauche du bouton au milieu horizontal */
-                    transform: translateX(-50%); /* Décale le bouton de 50% pour le centrer parfaitement */
-                    /* --- Bordure et Ombre --- */
-                    /*border: 2px solid var(--btn-border-color); /* Applique la variable de bordure définie */
-                    box-shadow: 2px 2px 6px var(--text-color-white); /* Ajoute une ombre portée pour détacher le bouton du fond */
-                    /* --- Couleurs et Police --- */
-                    background-color: var(--btn-second-color); /* Applique la variable de fond définie */
-                    color: var(--btn-third-color); /* Applique la variable de couleur de police définie */
+                    width: 80px;
+                    height: 80px;
+                    border-radius: 50%;
+                    position: fixed;
+                    z-index: 2; /* au-dessus des vagues de pied d'écran */
+                    bottom: calc(30px + env(safe-area-inset-bottom));
+                    left: 50%;
+                    transform: translateX(-50%);
+                    background: linear-gradient(165deg, #D89A68 0%, var(--btn-second-color) 45%, #8F5A31 100%);
+                    color: var(--btn-third-color);
                     text-shadow: 1px 1px 0px black;
-                    font-family: var(--main-font); /* Applique la variable de police définie */
-                    font-size: 24px; /* Définit la taille du texte à 24 pixels */
-                    font-weight: bold; /* Met le texte en gras pour qu'il soit bien lisible dans le rond */
-                    /* --- Centrage du Texte et Interaction --- */
-                    cursor: pointer; /* Affiche le curseur en forme de main au survol */
-                    display: flex; /* Active le mode Flexbox pour faciliter le centrage du texte à l'intérieur du rond */
-                    align-items: center; /* Centre le texte verticalement au milieu du bouton */
-                    justify-content: center; /* Centre le texte horizontalement au milieu du bouton */
-                    text-decoration: none; /* Supprime le soulignement par défaut si le bouton est une balise <a> */
-                    -webkit-backface-visibility: hidden; /* CORRECTION PWA : Force le rendu matériel sur mobile pour éviter que le bouton ne soit invisible au chargement */
-                    backface-visibility: hidden; /* Propriété standard requise pour les navigateurs modernes */
-                    -webkit-tap-highlight-color: transparent; /* Supprime la surbrillance bleue par défaut au clic/toucher */
-                    /* --- Transition Douce --- */
-                    transition: opacity 0.4s ease, transform 0.2s ease, visibility 0.4s ease; /* Ajoute une animation fluide lors de l'apparition/disparition */
+                    font-family: var(--main-font);
+                    font-size: 24px;
+                    font-weight: bold;
+                    cursor: pointer;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    text-decoration: none;
+                    -webkit-backface-visibility: hidden;
+                    backface-visibility: hidden;
+                    -webkit-tap-highlight-color: transparent;
+                    box-shadow:
+                        inset 0 1px 0 rgba(255,255,255,.35),
+                        0 3px 0 rgba(60,35,15,.4),
+                        0 10px 18px rgba(38,70,83,.28);
+                    transition: opacity 0.4s ease, transform 0.08s ease, visibility 0.4s ease, box-shadow .08s ease;
+                }
+                .btn-new:active {
+                    transform: translateX(-50%) translateY(2px);
+                    box-shadow:
+                        inset 0 1px 0 rgba(255,255,255,.25),
+                        0 1px 0 rgba(60,35,15,.4),
+                        0 4px 10px rgba(38,70,83,.22);
                 }
 
-                /* --- Effet au Clic du Bouton New --- */
-                .btn-new:active {
-                    /*transform: scale(0.95); /* Réduction au clic */
-                    box-shadow: 0 0 0 4px var(--btn-second-color);
-                    border-color: var(--btn-second-color);
-                    outline: none;
-                    }
+            /* ======================================= */
+            /* f. Vagues de pied d'écran (motif du logo) */
+            /* ======================================= */
+                .login-footer-wave {
+                    position: absolute;
+                    left: 0; right: 0; bottom: 0;
+                    width: 100%;
+                    height: 150px;
+                    z-index: 0;
+                    pointer-events: none;
+                }
 
         /* ======================================= */
         /* 02. ÉCRAN DE CRÉATION DE COMPTE (MODAL) */
@@ -556,117 +647,190 @@
             /* ============================================== */
                 .dashboard-content {
                     flex: 1; /* Force ce conteneur à prendre tout l'espace vertical restant sous le header */
-                    padding: 20px; /* Ajoute un espace interne autour du contenu de la page */
-                    overflow-y: auto; /* Active le défilement vertical si le contenu dépasse la hauteur de l'écran */
+                    min-height: 0; /* Autorise les enfants flex à se réduire sous leur taille de contenu (sinon .trips-shelf ne peut jamais rétrécir) */
+                    padding: 18px 16px; /* Ajoute un espace interne autour du contenu de la page */
+                    overflow-y: auto; /* Filet de sécurité : défile seulement si un très petit écran ne suffit vraiment pas */
+                    display: flex; /* Empile éveil/héros/étagère/actions/vagues verticalement */
+                    flex-direction: column;
                 }
-                /* --- Grille des voyages (Dashboard Content) --- */
-                    .trips-grid {
-                        display: grid; /* Active CSS Grid */
-                        grid-template-columns: repeat(2, 1fr); /* Crée exactement 2 colonnes de largeur égale */
-                        gap: 12px; /* Espace de 12px entre les lignes et les colonnes */
-                        padding: 12px; /* Marge interne autour de la grille */
-                        width: 100%; /* Prend toute la largeur disponible */
-                        box-sizing: border-box; /* Inclut le padding dans la largeur */
-                    }
 
-                /* --- Carte Bouton de Voyage --- */
+                /* Toutes les cartes de voyage (héros, étagère, voyages réalisés) partagent
+                   cette base fonctionnelle : c'est elle que ciblent .trip-card.selected,
+                   BOUNCE_SELECTOR et openDayHome()/updateTrip() via data-trip-id. L'habillage
+                   visuel (taille, fond, disposition) est propre à chaque variante ci-dessous. */
                     .trip-card {
-                        width: 100%; /* La carte prend toute la largeur de sa cellule dans la grille */
-                        height: 220px; /* Hauteur fixe demandée */
-                        background-color: var(--btn-bg-color); /* Fond blanc */
-                        border-radius: 12px; /* Arrondi des angles */
-                        box-shadow: 0px 4px 8px var(--btn-accent-bg); /* Ajoute une ombre portée */
-                        display: flex; /* Flexbox pour empiler les éléments internes */
-                        flex-direction: column; /* Empilement vertical */
-                        overflow: hidden; /* Coupe ce qui dépasse (image) */
-                        cursor: pointer; /* Curseur main */
-                        position: relative; /* Pour positionnement interne si besoin */
-                        -webkit-tap-highlight-color: transparent; /* Supprime la surbrillance bleue par défaut au clic/toucher */
+                        cursor: pointer;
+                        position: relative;
+                        -webkit-tap-highlight-color: transparent;
                     }
 
-                /* Partie supérieure : Image du voyage */
-                    .trip-image-container {
-                        width: 100%; /* Largeur pleine */
-                        height: 73px; /* Hauteur fixe demandée */
-                        overflow: hidden; /* Coupe l'image si elle est trop grande */
-                        flex-shrink: 0; /* Empêche la réduction de l'image */
+                /* --- Voyage "héros" (le plus proche dans le temps) --- */
+                    .dashboard-eyebrow {
+                        margin: 0 2px 8px;
+                        font-size: 11px;
+                        font-weight: bold;
+                        letter-spacing: .08em;
+                        text-transform: uppercase;
+                        color: var(--btn-accent-bg);
+                        flex-shrink: 0;
+                    }
+                    .dashboard-hero {
+                        position: relative;
+                        height: 220px;
+                        border-radius: 20px;
+                        overflow: hidden;
+                        box-shadow: 0 12px 24px rgba(38,70,83,.22);
+                        margin-bottom: 18px;
+                        flex-shrink: 0;
+                    }
+                    .dashboard-hero .hero-photo { position: absolute; inset: 0; }
+                    .dashboard-hero .hero-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+                    .dashboard-hero .hero-scrim {
+                        position: absolute; inset: 0;
+                        background: linear-gradient(to top, rgba(15,30,33,.92) 0%, rgba(15,30,33,.55) 38%, rgba(15,30,33,0) 62%);
+                    }
+                    .dashboard-hero .hero-info { position: absolute; left: 16px; right: 16px; bottom: 14px; }
+                    .dashboard-hero .hero-title { font-size: 20px; font-weight: bold; color: #FFFBF2; margin-bottom: 4px; }
+                    .dashboard-hero .hero-dates { font-size: 12px; color: #DCEAE6; margin-bottom: 5px; }
+                    .dashboard-hero .hero-country { font-size: 12.5px; font-weight: 500; color: #FFFBF2; display: flex; align-items: center; gap: 5px; }
+
+                /* --- Onglet cuir + rivet et pastille durée, partagés héros/étagère --- */
+                    .tag-tab {
+                        position: absolute;
+                        top: 0;
+                        background: var(--btn-second-color);
+                        border-radius: 0 0 5px 5px;
+                        width: 20px; height: 15px;
+                        display: flex; align-items: flex-end; justify-content: center;
+                        padding-bottom: 3px;
+                    }
+                    .tag-tab::after {
+                        content: "";
+                        width: 5px; height: 5px;
+                        border-radius: 50%;
+                        background: #E7B25C;
+                        box-shadow: 0 0 0 1.4px #8F5A31;
+                    }
+                    .duration-pill {
+                        position: absolute;
+                        background: var(--btn-third-color);
+                        color: #1B3A3D;
+                        font-weight: bold;
+                        border-radius: 20px;
                     }
 
-                    .trip-image-container img {
-                        width: 100%; /* Prend toute la largeur du conteneur */
-                        height: 100%; /* Prend toute la hauteur du conteneur */
-                        object-fit: cover; /* Recadre l'image pour remplir sans déformer */
-                        display: block; /* Supprime l'espace blanc sous l'image */
+                /* --- Étagère "Et ensuite" --- */
+                    .dashboard-shelf-label {
+                        margin: 0 2px 8px;
+                        font-size: 13px;
+                        font-weight: bold;
+                        color: var(--text-color-white);
+                        flex-shrink: 0;
                     }
+                    .trips-shelf {
+                        display: flex;
+                        gap: 11px;
+                        overflow-x: auto;
+                        overflow-y: hidden;
+                        padding-bottom: 4px;
+                        flex: 1; /* absorbe l'espace vertical restant : la photo s'ajuste toute seule (voir .shelf-photo) */
+                        min-height: 0;
+                    }
+                    .shelf-card {
+                        flex: 0 0 122px;
+                        background-color: #FFFBF2;
+                        border-radius: 14px;
+                        overflow: hidden;
+                        box-shadow: 0 5px 12px rgba(38,70,83,.14);
+                        display: flex;
+                        flex-direction: column;
+                        min-height: 0;
+                    }
+                    .shelf-photo {
+                        position: relative;
+                        flex: 1;
+                        min-height: 38px; /* plancher : ne s'écrase jamais complètement sur un très petit écran */
+                    }
+                    .shelf-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+                    .shelf-body { padding: 8px 9px 9px; flex-shrink: 0; }
+                    .shelf-title {
+                        font-size: 13px;
+                        font-weight: bold;
+                        color: var(--text-color-white);
+                        white-space: nowrap;
+                        overflow: hidden;
+                        text-overflow: ellipsis;
+                        margin-bottom: 3px;
+                    }
+                    .shelf-dates { font-size: 10.5px; color: var(--text-color-white); opacity: .75; margin-bottom: 4px; }
+                    .shelf-country { font-size: 11px; font-weight: 500; color: var(--text-color-white); display: flex; align-items: center; gap: 4px; }
 
-                /* Corps de la carte (Texte) */
-                    .trip-details {
-                        padding: 10px; /* Espace interne */
-                        display: flex; /* Flexbox pour structurer le texte */
-                        flex-direction: column; /* Empilement vertical */
-                        flex-grow: 1; /* Prend l'espace restant */
-                        font-family: var(--main-font); /* Applique la variable de police définie */
-                        font-size: 14px; /* Taille de police lisible */
-                        color: var(--text-color-white); /* Couleur texte */
+                /* --- Actions : Nouveau voyage + Voyages réalisés, sur la même ligne --- */
+                    .dashboard-actions-row {
+                        display: flex;
+                        gap: 10px;
+                        margin-top: 14px;
+                        flex-shrink: 0;
                     }
+                    .btn-new-trip-tile, .btn-past-trips {
+                        flex: 1;
+                        min-width: 0;
+                        height: 80px;
+                        border-radius: 14px;
+                        display: flex;
+                        flex-direction: column;
+                        align-items: center;
+                        justify-content: center;
+                        gap: 6px;
+                        font-family: var(--main-font);
+                        cursor: pointer;
+                        border: none;
+                        position: relative;
+                        -webkit-tap-highlight-color: transparent;
+                    }
+                    .btn-new-trip-tile { border: 2px dashed var(--btn-accent-bg); background-color: #FBE7C4; }
+                    .new-trip-ring {
+                        width: 28px; height: 28px;
+                        border-radius: 50%;
+                        border: 2.5px solid var(--btn-accent-bg);
+                        display: flex; align-items: center; justify-content: center;
+                        color: var(--btn-accent-bg);
+                        font-size: 16px;
+                        font-weight: bold;
+                        line-height: 1;
+                    }
+                    .new-trip-label { font-size: 12px; font-weight: bold; color: var(--btn-accent-bg); text-align: center; line-height: 1.3; }
 
-                    .trip-title {
-                        font-weight: bold; /* Titre en gras */
-                        font-size: 18px; /* Taille légèrement supérieure */
-                        margin-bottom: 8px; /* Espace sous le titre */
-                        white-space: auto; /* Empêche le retour à la ligne */ /*TEST1*/
-                        overflow: hidden; /* Cache le dépassement */
-                        text-overflow: ellipsis; /* Ajoute "..." si trop long */
-                        font-weight: bold; /* Gras */
-                        color: var(--text-color-white); /* Couleur du coutour du globe du Logo */
+                    .btn-past-trips { background-color: #FFFBF2; box-shadow: 0 4px 10px rgba(38,70,83,.10); }
+                    .past-trips-icon {
+                        width: 26px; height: 26px;
+                        border-radius: 50%;
+                        background: var(--btn-bg-color);
+                        display: flex; align-items: center; justify-content: center;
                     }
+                    .past-trips-icon svg { width: 12px; height: 12px; display: block; }
+                    .past-trips-title { font-size: 11.5px; font-weight: bold; color: var(--text-color-white); text-align: center; line-height: 1.3; }
+                    .past-trips-count { font-size: 9.5px; color: var(--text-color-white); opacity: .7; }
+                    .past-trips-chevron { position: absolute; top: 9px; right: 9px; width: 13px; height: 13px; }
 
-                    .trip-dates {
-                        font-size: 16px; /* Police plus petite pour les dates */
-                        margin-bottom: 8px; /* Espace sous les dates */
-                        display: flex; /* Alignement horizontal des dates */
-                        justify-content: space-between; /* Écarte début et fin */
-                        color: var(--text-color-white); /* Couleur grisée */
-                    }
+                /* --- Vagues de pied d'écran, motif repris du logo --- */
+                    .dashboard-footer-wave { width: 100%; height: 64px; flex-shrink: 0; margin-top: 10px; display: block; }
 
-                    .trip-country {
-                        font-size: 21px; /* Taille nom du pays */
-                        margin-top: auto; /* Pousse le pays vers le bas si espace libre */
-                        display: flex; /* Alignement horizontal pays + drapeau */
-                        align-items: center; /* Centrage vertical */
-                        gap: 5px; /* Espace entre texte et émoji */
-                        color: var(--text-color-white); /* Couleur noir */
+                /* --- Modale "Voyages réalisés" --- */
+                    .past-trips-list { padding: 16px; max-height: 60vh; overflow-y: auto; }
+                    .past-trip-row {
+                        display: flex;
+                        gap: 11px;
+                        background-color: #FFFBF2;
+                        border-radius: 14px;
+                        box-shadow: 0 4px 10px rgba(38,70,83,.10);
+                        overflow: hidden;
+                        margin-bottom: 10px;
                     }
-
-                /* --- Bouton "New Trip" --- */
-                    .btn-new-trip {
-                        width: 100%; /* Même largeur que les cartes */
-                        height: 220px; /* Même hauteur que les cartes */
-                        background-color: #f9f9f9; /* Fond gris très clair */
-                        border: 2px dashed var(--btn-accent-bg); /* Bordure en pointillés */
-                        border-radius: 12px; /* Arrondi */
-                        display: flex; /* Flexbox pour centrer le contenu */
-                        flex-direction: column; /* Empilement vertical */
-                        justify-content: center; /* Centre verticalement */
-                        align-items: center; /* Centre horizontalement */
-                        cursor: pointer; /* Curseur main */
-                        color: var(--text-color-second); /* Couleur grise */
-                        text-shadow: 1px 1px 0px black;
-                        font-family: var(--main-font); /* Applique la variable de police définie */
-                    }
-
-                    .new-trip-icon {
-                        font-size: 100px; /* Grand symbole + */
-                        line-height: 1; /* Hauteur de ligne normale */
-                        margin-bottom: 10px; /* Espace sous le + */
-                        color: var(--btn-second-color); /* Couleur symbole */
-                    }
-
-                    .new-trip-text {
-                        font-size: 18px; /* Taille du texte */
-                        font-weight: bold; /* Gras */
-                        color: var(--text-color-second); /* Couleur de la marque */
-                    }
+                    .past-trip-photo { position: relative; width: 78px; flex-shrink: 0; }
+                    .past-trip-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+                    .past-trip-body { flex: 1; min-width: 0; padding: 9px 11px; display: flex; flex-direction: column; justify-content: center; }
+                    .dashboard-empty { padding: 30px 10px; text-align: center; color: var(--text-color-white); opacity: .7; font-size: 14px; }
 
             /* ======================== */
             /* f. Modale d'ajout voyage */
@@ -1153,9 +1317,10 @@
                             opacity: 0;
                         }
                     }
-                    /* Effet Rebond (.btn-back, .btn-hamburger, .trip-card, .btn-new-trip, menu d'options) */
+                    /* Effet Rebond (.btn-back, .btn-hamburger, .trip-card, .btn-new-trip-tile, .btn-past-trips, menu d'options) */
                     /* Version simple : pour les éléments sans transform de base */
-                    .btn-new-trip.bouncing,
+                    .btn-new-trip-tile.bouncing,
+                    .btn-past-trips.bouncing,
                     .options-menu button.bouncing {
                         animation: bounce-anim 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
                     }
@@ -2286,33 +2451,59 @@
          scrollable avec le reste de la page. Ce conteneur le rend fixe comme
          les autres écrans (voir .login-screen en CSS). -->
     <div id="login-screen" class="login-screen">
-        <!-- ================== -->
-        <!-- En-tête sémantique -->
-        <!-- ================== -->
-            <header> <!-- Ouvre l'en-tête de la page -->
-                <h1>HolyPlanner</h1> <!-- Affiche le titre principal de l'application -->
-            </header> <!-- Ferme l'en-tête -->
+        <!-- ============================================================ -->
+        <!-- Corps : logo en grand, titre, accroche, puis la mallette --
+             harmonisé avec le héros du dashboard (voir #dashboard-screen). -->
+        <!-- ============================================================ -->
+            <div class="login-body">
+                <img class="login-emblem" src="icons/iconbig.png" alt="HolyPlanner">
+                <h1 class="login-title">HolyPlanner</h1>
+                <p class="login-tagline">Organisez vos prochains voyages</p>
 
-        <!-- ================= -->
-        <!-- Contenu principal -->
-        <!-- ================= -->
-            <!-- ================================================= -->
-            <!-- a. CONTENEUR PRINCIPAL DU FORMULAIRE DE CONNEXION -->
-            <!-- ================================================= -->
-                <div class="login-container"> <!-- Ouvre le conteneur de connexion -->
-                    <!-- Champ Pseudo --- -->
-                    <input type="text" class="input-field" placeholder="Pseudo" maxlength="12"> <!-- Crée un champ texte pour saisir le pseudo avec le style défini en CSS -->
-                    <!-- Champ Mot de passe --- -->
-                    <input type="password" class="input-field" placeholder="MDP" maxlength="4" pattern="[0-9]{4}" inputmode="numeric"> <!-- Crée un champ mot de passe limité à 4 chiffres, affichant un clavier numérique sur mobile -->
-                    <!-- Bouton Connexion --- -->
-                    <button class="btn-connexion">Connexion</button> <!-- Crée le bouton de validation du formulaire de connexion -->
-                </div> <!-- Ferme le conteneur de connexion -->
+                <!-- La poignée est un élément FRÈRE placé avant .login-card : le fond
+                     opaque de la mallette la recouvre là où elles se chevauchent. -->
+                <div class="login-card-wrap">
+                    <svg class="case-handle" viewBox="0 0 108 52" aria-hidden="true">
+                        <defs>
+                            <linearGradient id="handleGrad" x1="0" y1="0" x2="1" y2="1">
+                                <stop offset="0%" stop-color="#57ACA3"/>
+                                <stop offset="55%" stop-color="#2E7D7A"/>
+                                <stop offset="100%" stop-color="#1B3E3C"/>
+                            </linearGradient>
+                        </defs>
+                        <path fill-rule="evenodd" fill="url(#handleGrad)" d="M20,0 L88,0 Q100,0 100,10 L100,42 Q100,52 90,52 L18,52 Q8,52 8,42 L8,10 Q8,0 20,0 Z M30,14 L78,14 Q86,14 86,22 L86,30 Q86,38 78,38 L30,38 Q22,38 22,30 L22,22 Q22,14 30,14 Z"/>
+                        <path fill="none" stroke="#123230" stroke-width="1.4" opacity="0.55" d="M30,14 L78,14 Q86,14 86,22 L86,30 Q86,38 78,38 L30,38 Q22,38 22,30 L22,22 Q22,14 30,14 Z"/>
+                    </svg>
 
-                <!-- ÉCRAN DE CHARGEMENT : affiché le temps que la connexion réponde
-                     (le serveur gratuit peut mettre du temps à se réveiller) -->
-                <div id="loading-screen" class="loading-screen">
-                    <img src="icons/icon-512.png" alt="Chargement..." class="loading-logo">
+                    <!-- ================================================= -->
+                    <!-- a. CONTENEUR PRINCIPAL DU FORMULAIRE DE CONNEXION -->
+                    <!-- ================================================= -->
+                        <div class="login-card"> <!-- Ouvre la mallette -->
+                            <!-- Lanières : enfants de .login-card, donc rendues par-dessus. -->
+                            <div class="case-strap left"></div>
+                            <div class="case-strap right"></div>
+
+                            <!-- Champ Pseudo --- -->
+                            <div class="field-group">
+                                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="8" r="4" stroke="#264653" stroke-width="2"/><path d="M4 20c1.5-4 5-6 8-6s6.5 2 8 6" stroke="#264653" stroke-width="2" stroke-linecap="round"/></svg>
+                                <input type="text" class="field" placeholder="Pseudo" maxlength="12"> <!-- Crée un champ texte pour saisir le pseudo avec le style défini en CSS -->
+                            </div>
+                            <!-- Champ Mot de passe --- -->
+                            <div class="field-group">
+                                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2" stroke="#264653" stroke-width="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3" stroke="#264653" stroke-width="2" stroke-linecap="round"/></svg>
+                                <input type="password" class="field" placeholder="MDP" maxlength="4" pattern="[0-9]{4}" inputmode="numeric"> <!-- Crée un champ mot de passe limité à 4 chiffres, affichant un clavier numérique sur mobile -->
+                            </div>
+                            <!-- Bouton Connexion --- -->
+                            <button class="btn-connexion">Connexion</button> <!-- Crée le bouton de validation du formulaire de connexion -->
+                        </div> <!-- Ferme la mallette -->
                 </div>
+            </div>
+
+            <!-- ÉCRAN DE CHARGEMENT : affiché le temps que la connexion réponde
+                 (le serveur gratuit peut mettre du temps à se réveiller) -->
+            <div id="loading-screen" class="loading-screen">
+                <img src="icons/icon-512.png" alt="Chargement..." class="loading-logo">
+            </div>
 
             <!-- ============================ -->
             <!-- b. CONTENEUR DU BOUTON "NEW" -->
@@ -2322,6 +2513,24 @@
                         New <!-- Texte affiché à l'intérieur du bouton rond -->
                     </button> <!-- Ferme le bouton "New" -->
                 </div> <!-- Ferme le conteneur du bouton "New" -->
+
+            <!-- Vagues de pied d'écran, motif du logo (purement décoratif) -->
+            <svg class="login-footer-wave" viewBox="0 0 336 150" preserveAspectRatio="none" aria-hidden="true">
+                <defs>
+                    <linearGradient id="loginWaveFront" x1="0" y1="0" x2="1" y2="0">
+                        <stop offset="0%" stop-color="#3E8079"/>
+                        <stop offset="45%" stop-color="#C97C4A"/>
+                        <stop offset="100%" stop-color="#F7A93E"/>
+                    </linearGradient>
+                </defs>
+                <path d="M0,87 C110,48 220,48 336,78 L336,150 L0,150 Z" fill="#1B3E5C" opacity="0.85"/>
+                <path d="M0,57 C60,24 120,81 200,69 C258,60 300,81 336,75 L336,150 L0,150 Z" fill="#2E6E6B"/>
+                <path d="M0,57 C60,24 120,81 200,69 C258,60 300,81 336,75" fill="none" stroke="#1B3A3D" stroke-width="1.4" opacity="0.5"/>
+                <path d="M0,93 C85,111 145,30 232,37.5 C280,42 312,67.5 336,63 L336,150 L0,150 Z" fill="#AFCFC8"/>
+                <path d="M0,93 C85,111 145,30 232,37.5 C280,42 312,67.5 336,63" fill="none" stroke="#6E9490" stroke-width="1.2" opacity="0.55"/>
+                <path d="M0,111 C92,132 162,63 242,66 C282,67.5 312,90 336,84 L336,150 L0,150 Z" fill="url(#loginWaveFront)"/>
+                <path d="M0,111 C92,132 162,63 242,66 C282,67.5 312,90 336,84" fill="none" stroke="#7A4A22" stroke-width="1.2" opacity="0.4"/>
+            </svg>
     </div> <!-- Ferme #login-screen -->
 
         <!-- ======================================= -->
@@ -2379,13 +2588,57 @@
 
                 <!-- Conteneur principal qui prend tout l'espace restant grâce à flex:1 dans le CSS -->
                 <main class="dashboard-content">
-                    <!-- Conteneur principal de la grille (à placer dans #dashboard-content) -->
-                    <div id="trips-grid" class="trips-grid">
-                        <!-- Bouton "New Trip" (toujours présent, au début ou à la fin selon préférence, ici à la fin par défaut du flux) -->
-                        <button class="btn-new-trip" onclick="openAddTripModal()">
-                            <span class="new-trip-icon">+</span>
-                            <span class="new-trip-text">New Trip</span>
+                    <!-- Voyage "héros" : le prochain départ à venir. Rempli par renderDashboard(). -->
+                    <div id="dashboard-eyebrow" class="dashboard-eyebrow" style="display:none;">Prochain départ</div>
+                    <div id="dashboard-hero" class="dashboard-hero" style="display:none;"></div>
+
+                    <!-- Étagère horizontale : les autres voyages à venir. Remplie par renderDashboard(). -->
+                    <div id="dashboard-shelf-label" class="dashboard-shelf-label" style="display:none;">Et ensuite</div>
+                    <div id="trips-shelf" class="trips-shelf"></div>
+
+                    <!-- Actions : créer un voyage / consulter les voyages déjà réalisés -->
+                    <div class="dashboard-actions-row">
+                        <button class="btn-new-trip-tile" onclick="openAddTripModal()">
+                            <span class="new-trip-ring">+</span>
+                            <span class="new-trip-label">Nouveau<br>voyage</span>
                         </button>
+                        <button class="btn-past-trips" onclick="openPastTripsModal()">
+                            <span class="past-trips-icon">
+                                <svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#12262A" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                            </span>
+                            <span class="past-trips-title">Voyages<br>réalisés</span>
+                            <span id="past-trips-count" class="past-trips-count">0 voyage</span>
+                            <svg class="past-trips-chevron" viewBox="0 0 24 24" fill="none"><path d="M9 5l7 7-7 7" stroke="#5B7981" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        </button>
+                    </div>
+
+                    <!-- Vagues de pied d'écran, motif repris du logo (purement décoratif) -->
+                    <svg class="dashboard-footer-wave" viewBox="0 0 336 100" preserveAspectRatio="none" aria-hidden="true">
+                        <defs>
+                            <linearGradient id="footerWaveFrontReal" x1="0" y1="0" x2="1" y2="0">
+                                <stop offset="0%" stop-color="#3E8079"/>
+                                <stop offset="45%" stop-color="#C97C4A"/>
+                                <stop offset="100%" stop-color="#F7A93E"/>
+                            </linearGradient>
+                        </defs>
+                        <path d="M0,58 C110,32 220,32 336,52 L336,100 L0,100 Z" fill="#1B3E5C" opacity="0.85"/>
+                        <path d="M0,38 C60,16 120,54 200,46 C258,40 300,54 336,50 L336,100 L0,100 Z" fill="#2E6E6B"/>
+                        <path d="M0,38 C60,16 120,54 200,46 C258,40 300,54 336,50" fill="none" stroke="#1B3A3D" stroke-width="1.4" opacity="0.5"/>
+                        <path d="M0,62 C85,74 145,20 232,25 C280,28 312,45 336,42 L336,100 L0,100 Z" fill="#AFCFC8"/>
+                        <path d="M0,62 C85,74 145,20 232,25 C280,28 312,45 336,42" fill="none" stroke="#6E9490" stroke-width="1.2" opacity="0.55"/>
+                        <path d="M0,74 C92,88 162,42 242,44 C282,45 312,60 336,56 L336,100 L0,100 Z" fill="url(#footerWaveFrontReal)"/>
+                        <path d="M0,74 C92,88 162,42 242,44 C282,45 312,60 336,56" fill="none" stroke="#7A4A22" stroke-width="1.2" opacity="0.4"/>
+                    </svg>
+
+                    <!-- MODALE "VOYAGES RÉALISÉS" -->
+                    <div id="modal-past-trips" class="modal-overlay">
+                        <div class="modal-content-add" style="max-width:420px;">
+                            <header class="modal-add-header">
+                                <button class="btn-back" onclick="closePastTripsModal()">&#8592;</button>
+                                <h2 class="modal-add-title">Voyages réalisés</h2>
+                            </header>
+                            <div id="past-trips-list" class="past-trips-list"></div>
+                        </div>
                     </div>
 
                     <!-- MODALE D'AJOUT DE VOYAGE -->
@@ -2801,12 +3054,12 @@
                 }
 
             // ========================================
-            // --- EFFET REBOND (.btn-back, .btn-hamburger, .trip-card, .btn-new-trip) ---
+            // --- EFFET REBOND (.btn-back, .btn-hamburger, .trip-card, .btn-new-trip-tile, .btn-past-trips) ---
             // ========================================
                 // Délégation sur document : .trip-card et .btn-back sont générés/clonés
                 // dynamiquement (nouveaux voyages, nouveaux écrans jour) donc un
                 // querySelectorAll classique attaché une seule fois raterait ces éléments.
-                const BOUNCE_SELECTOR = '.btn-back, .btn-hamburger, .trip-card, .btn-new-trip, .options-menu button, .btn-delete, .btn-day, .btn-recap, .btn-map, .btn-docs, .btn-finance, .btn-orga';
+                const BOUNCE_SELECTOR = '.btn-back, .btn-hamburger, .trip-card, .btn-new-trip-tile, .btn-past-trips, .options-menu button, .btn-delete, .btn-day, .btn-recap, .btn-map, .btn-docs, .btn-finance, .btn-orga';
 
                 function triggerBounce(el) {
                     el.classList.remove('bouncing');
@@ -3451,70 +3704,163 @@
                             cloudTrips.push(createdTrip); // Met à jour le cache mémoire
 
                         // 6. Affichage immédiat via la fonction de rendu dédiée
-                            renderTripCard(createdTrip); // Appelle la fonction qui crée le HTML et les boutons "Jour"
-                        
+                            renderDashboard(); // Reconstruit héros/étagère/voyages réalisés à partir du cache à jour
+
                         // 7. Nettoyage du formulaire
                             closeAddTripModal(); // Ferme la fenêtre modale et réinitialise les champs
                     }
 
-                // ======================================================
-                // 09. Fonction pour générer et afficher une carte voyage
-                // ======================================================
-                    function renderTripCard(trip, insertAfterNewTrip = false) {
-                        // 1. Sélection du conteneur et préparation
-                        const grid = document.getElementById('trips-grid'); // Récupère la grille principale des voyages
-                        const btnNewTrip = document.querySelector('.btn-new-trip'); // Récupère le bouton "New Trip" pour l'insertion
-                        const newCard = document.createElement('div'); // Crée la nouvelle carte voyage
-                        newCard.className = 'trip-card'; // Applique la classe CSS principale
-                        newCard.dataset.tripId = trip.id; // Définit l'ID unique en attribut data (ex: data-trip-id="123456")
-                        newCard.dataset.diffTime = trip.duration; // Stocke la durée dynamique (ex: data-diff-time="5")
+                // ==========================================================
+                // 09. Rendu du dashboard : héros + étagère + voyages réalisés
+                // ==========================================================
+                    // Convertit une date ISO (YYYY-MM-DD) en "jj/mm" compact, pour les cartes
+                    // du dashboard (l'année complète reste affichée sur l'écran d'accueil du
+                    // voyage et dans le formulaire -- voir toShortDate()/formatDayLabel()).
+                    function formatShortDate(isoDate) {
+                        if (!isoDate) return '';
+                        const parts = isoDate.split('-');
+                        if (parts.length !== 3) return isoDate;
+                        return `${parts[2]}/${parts[1]}`;
+                    }
 
-                        // 2. Gestion du clic sur la carte (Navigation vs Édition)
-                        newCard.onclick = function(e) { // Ajout de 'e' pour l'événement
-                            // Empêche le clic sur la carte de déclencher l'ouverture si on clique sur un bouton interne (ex: futur bouton Orga)
-                            if (e.target.closest('button')) return; 
+                    // Reconstruit tout le dashboard à partir de cloudTrips : plutôt que de
+                    // manipuler le DOM au coup par coup (ajout/suppression/édition), on
+                    // recalcule à chaque fois qui est le voyage "héros" (le plus proche dans
+                    // le temps), qui va dans l'étagère "Et ensuite" et qui est déjà terminé --
+                    // ces trois catégories peuvent changer après n'importe quelle création/
+                    // modification/suppression.
+                    function renderDashboard() {
+                        const todayISO = new Date().toISOString().slice(0, 10);
+                        const byDateStartAsc = (a, b) => (a.dateStart || '').localeCompare(b.dateStart || '');
+                        const byDateStartDesc = (a, b) => (b.dateStart || '').localeCompare(a.dateStart || '');
 
-                            if (pendingAction) { 
-                                selectTrip(newCard, trip.id); // Si une action est en cours, délègue à selectTrip
-                            } else { 
-                                openTripHome(trip.id); // Sinon, ouvre l'écran d'accueil du voyage (trip-home-screen)
+                        const upcoming = cloudTrips.filter(t => !t.dateEnd || t.dateEnd >= todayISO).sort(byDateStartAsc);
+                        const past = cloudTrips.filter(t => t.dateEnd && t.dateEnd < todayISO).sort(byDateStartDesc); // le plus récemment terminé en premier
+
+                        const heroTrip = upcoming[0] || null;
+                        const shelfTrips = upcoming.slice(1);
+
+                        renderHero(heroTrip);
+                        renderShelf(shelfTrips);
+                        renderPastTrips(past);
+                    }
+
+                    // Attache les écouteurs communs à toute carte de voyage (héros, étagère,
+                    // voyages réalisés) : même logique que l'ancien renderTripCard(), pour que
+                    // selectTrip()/executeEdit()/executeDelete()/openDayHome() continuent de
+                    // fonctionner sans changement (ils ciblent .trip-card[data-trip-id]).
+                    function wireTripCard(el, trip, onOpenExtra) {
+                        el.classList.add('trip-card');
+                        el.dataset.tripId = trip.id;
+                        el.dataset.diffTime = trip.duration;
+                        el.addEventListener('click', (e) => {
+                            if (e.target.closest('button')) return;
+                            if (pendingAction) {
+                                selectTrip(el, trip.id);
+                            } else {
+                                if (onOpenExtra) onOpenExtra();
+                                openTripHome(trip.id);
                             }
-                        };
+                        });
+                    }
 
-                        // Conversion des dates ISO (YYYY-MM-DD) vers format affichage (JJ/MM/AAAA)
-                        const displayStart = trip.dateStart.split('-').reverse().join('/'); 
-                        const displayEnd = trip.dateEnd.split('-').reverse().join('/');
-                        // ---------------------------------------------------
+                    function renderHero(trip) {
+                        const eyebrow = document.getElementById('dashboard-eyebrow');
+                        const hero = document.getElementById('dashboard-hero');
+                        if (!hero) return;
 
-                        // 3. Injection du contenu HTML
-                        newCard.innerHTML = `
-                            <div class="trip-image-container">
-                                <img src="${trip.image}" alt="${trip.name}">
-                            </div>
-                            <div class="trip-details">
-                                <div class="trip-title">${trip.name}</div>
-                                <div class="trip-dates">
-                                    <span>${displayStart}</span>
-                                    <span> – </span>
-                                    <span>${displayEnd}</span>
-                                </div>
-                                <div class="trip-country">
-                                    <span>${trip.country}</span>
-                                    <span>${trip.flag}</span>
-                                </div>
+                        if (!trip) {
+                            if (eyebrow) eyebrow.style.display = 'none';
+                            hero.style.display = 'none';
+                            hero.innerHTML = '';
+                            return;
+                        }
+
+                        if (eyebrow) eyebrow.style.display = '';
+                        hero.style.display = '';
+                        hero.innerHTML = `
+                            <div class="hero-photo"><img src="${trip.image}" alt="${trip.name}"></div>
+                            <div class="hero-scrim"></div>
+                            <div class="tag-tab" style="left:14px;"></div>
+                            <span class="duration-pill" style="top:12px;right:12px;font-size:11px;padding:3.5px 9px;">${trip.duration} j</span>
+                            <div class="hero-info">
+                                <div class="hero-title">${trip.name}</div>
+                                <div class="hero-dates">${formatShortDate(trip.dateStart)} – ${formatShortDate(trip.dateEnd)}</div>
+                                <div class="hero-country"><span>${trip.country}</span><span>${trip.flag || ''}</span></div>
                             </div>
                         `;
+                        wireTripCard(hero, trip);
+                    }
 
-                        // Voyage déjà terminé (dateEnd antérieure à aujourd'hui) : la carte est
-                        // ajoutée à la toute fin de la grille, donc APRÈS .btn-new-trip. Les
-                        // voyages à venir/en cours restent insérés juste avant le bouton, comme
-                        // avant.
-                        if (insertAfterNewTrip) {
-                            grid.appendChild(newCard);
-                        } else {
-                            grid.insertBefore(newCard, btnNewTrip);
+                    function renderShelf(trips) {
+                        const label = document.getElementById('dashboard-shelf-label');
+                        const shelf = document.getElementById('trips-shelf');
+                        if (!shelf) return;
+
+                        shelf.innerHTML = '';
+                        if (trips.length === 0) {
+                            if (label) label.style.display = 'none';
+                            shelf.style.display = 'none';
+                            return;
                         }
-                    }   
+                        if (label) label.style.display = '';
+                        shelf.style.display = '';
+
+                        trips.forEach(trip => {
+                            const card = document.createElement('div');
+                            card.className = 'shelf-card';
+                            card.innerHTML = `
+                                <div class="shelf-photo">
+                                    <img src="${trip.image}" alt="${trip.name}">
+                                    <div class="tag-tab" style="left:8px;"></div>
+                                    <span class="duration-pill" style="top:5px;right:5px;font-size:9.5px;padding:2px 6px;">${trip.duration} j</span>
+                                </div>
+                                <div class="shelf-body">
+                                    <div class="shelf-title">${trip.name}</div>
+                                    <div class="shelf-dates">${formatShortDate(trip.dateStart)} – ${formatShortDate(trip.dateEnd)}</div>
+                                    <div class="shelf-country"><span>${trip.country}</span><span>${trip.flag || ''}</span></div>
+                                </div>
+                            `;
+                            wireTripCard(card, trip);
+                            shelf.appendChild(card);
+                        });
+                    }
+
+                    function renderPastTrips(trips) {
+                        const countEl = document.getElementById('past-trips-count');
+                        if (countEl) countEl.textContent = trips.length + (trips.length > 1 ? ' voyages' : ' voyage');
+
+                        const list = document.getElementById('past-trips-list');
+                        if (!list) return;
+                        list.innerHTML = '';
+
+                        if (trips.length === 0) {
+                            list.innerHTML = '<p class="dashboard-empty">Aucun voyage réalisé pour l’instant.</p>';
+                            return;
+                        }
+
+                        trips.forEach(trip => {
+                            const row = document.createElement('div');
+                            row.className = 'past-trip-row';
+                            row.innerHTML = `
+                                <div class="past-trip-photo"><img src="${trip.image}" alt="${trip.name}"></div>
+                                <div class="past-trip-body">
+                                    <div class="shelf-title">${trip.name}</div>
+                                    <div class="shelf-dates">${formatShortDate(trip.dateStart)} – ${formatShortDate(trip.dateEnd)}</div>
+                                    <div class="shelf-country"><span>${trip.country}</span><span>${trip.flag || ''}</span></div>
+                                </div>
+                            `;
+                            wireTripCard(row, trip, closePastTripsModal); // ferme la modale avant d'ouvrir l'écran d'accueil du voyage
+                            list.appendChild(row);
+                        });
+                    }
+
+                    function openPastTripsModal() {
+                        document.getElementById('modal-past-trips')?.classList.add('active');
+                    }
+                    function closePastTripsModal() {
+                        document.getElementById('modal-past-trips')?.classList.remove('active');
+                    }
 
                 // ==============================================================
                 // 10. Fonction pour charger les voyages sauvegardés au démarrage
@@ -3524,16 +3870,15 @@
                     async function loadSavedTrips() {
                         const thisCallId = ++loadSavedTripsCallId;
 
-                        // Nettoie les cartes déjà affichées (utile si la fonction est rappelée,
-                        // ex: après connexion) pour éviter les doublons visuels.
-                        document.querySelectorAll('#trips-grid .trip-card').forEach(card => card.remove());
-
                         let result;
                         try {
                             result = await apiRequest('GET', '/trips') || []; // Voyages accessibles à l'utilisateur connecté
                         } catch (e) {
                             console.error('Impossible de charger les voyages depuis le cloud :', e);
-                            if (thisCallId === loadSavedTripsCallId) cloudTrips = [];
+                            if (thisCallId === loadSavedTripsCallId) {
+                                cloudTrips = [];
+                                renderDashboard();
+                            }
                             return;
                         }
 
@@ -3546,29 +3891,11 @@
                         }
 
                         cloudTrips = result;
+                        renderDashboard();
 
-                        if (cloudTrips.length > 0) {
-                            // Sépare voyages à venir/en cours (dateEnd >= aujourd'hui) et voyages
-                            // déjà terminés (dateEnd < aujourd'hui), chacun trié par date
-                            // croissante (dateStart). Les terminés s'affichent après
-                            // .btn-new-trip (voir renderTripCard).
-                            const todayISO = new Date().toISOString().slice(0, 10); // "YYYY-MM-DD", comparable directement à dateEnd
-                            const upcoming = [];
-                            const past = [];
-                            cloudTrips.forEach(trip => {
-                                (trip.dateEnd && trip.dateEnd < todayISO ? past : upcoming).push(trip);
-                            });
-                            const byDateStartAsc = (a, b) => (a.dateStart || '').localeCompare(b.dateStart || '');
-                            upcoming.sort(byDateStartAsc);
-                            past.sort(byDateStartAsc);
-
-                            upcoming.forEach(trip => renderTripCard(trip, false));
-                            past.forEach(trip => renderTripCard(trip, true));
-
-                            console.log(cloudTrips.length + " voyages chargés depuis le cloud.");
-                        } else {
-                            console.log("Aucun voyage sauvegardé trouvé.");
-                        }
+                        console.log(cloudTrips.length > 0
+                            ? (cloudTrips.length + " voyages chargés depuis le cloud.")
+                            : "Aucun voyage sauvegardé trouvé.");
                     }
 
                 // =========================================================
@@ -3714,10 +4041,11 @@
                                 alert("La suppression a échoué (connexion au serveur impossible).");
                                 return; // On ne retire rien du DOM/cache si le serveur n'a pas confirmé
                             }
-                            // Supprimer du DOM
-                            cardElement.remove();
-                            // Supprimer du cache mémoire
+                            // Supprimer du cache mémoire, puis reconstruire le dashboard (le voyage
+                            // supprimé peut avoir été le héros, un voyage de l'étagère ou un voyage
+                            // réalisé -- plus simple de tout recalculer que de retirer cardElement).
                             cloudTrips = cloudTrips.filter(trip => trip.id !== tripId);
+                            renderDashboard();
                         }
                     }
                     // --- f. Fonction de Mise à Jour (appelée par le bouton "Mettre à jour") ---
@@ -3794,23 +4122,11 @@
                                 return;
                             }
                             cloudTrips[tripIndex] = updatedTrip; // Remplace par la version confirmée par le serveur
-                            
-                            // 5. Mise à jour du DOM
-                            const cardToUpdate = document.querySelector(`.trip-card[data-trip-id="${tripId}"]`);
-                            
-                            if (cardToUpdate) {
-                                cardToUpdate.dataset.diffTime = durationDays;
-                                cardToUpdate.querySelector('.trip-title').textContent = name;
-                                // Même conversion ISO -> jj/mm/aaaa que renderTripCard(), pour rester
-                                // cohérent avec l'affichage du dashboard après un rechargement.
-                                const displayStart = isoStart.split('-').reverse().join('/');
-                                const displayEnd = isoEnd.split('-').reverse().join('/');
-                                cardToUpdate.querySelector('.trip-dates').innerHTML = `<span>${displayStart}</span><span> – </span><span>${displayEnd}</span>`;
-                                cardToUpdate.querySelector('.trip-country').innerHTML = `<span>${countryName}</span><span>${countryFlag}</span>`;
-                                
-                                const img = cardToUpdate.querySelector('img');
-                                if (img && currentImageBase64) img.src = currentImageBase64;
-                            }
+
+                            // 5. Reconstruction du dashboard : le voyage modifié peut changer de
+                            // catégorie (héros / étagère / voyages réalisés) selon ses nouvelles
+                            // dates, donc on recalcule tout plutôt que patcher une carte existante.
+                            renderDashboard();
 
                             // 6. Fermeture et reset
                             closeAddTripModal();
@@ -3977,7 +4293,7 @@
                             document.getElementById('field-duration-place').innerText = `${trip.duration} jours - ${trip.country} ${trip.flag || ''}`; // Affiche "X jours - Pays Drapeau"
 
                             // Champ 2 : Dates -- conversion ISO (AAAA-MM-JJ) -> jj/mm/aaaa pour
-                            // l'affichage, même logique que displayStart/displayEnd dans renderTripCard()
+                            // l'affichage, même logique que renderDashboard() (voir formatShortDate)
                             const displayDateStart = (trip.dateStart || '').split('-').reverse().join('/');
                             const displayDateEnd = (trip.dateEnd || '').split('-').reverse().join('/');
                             document.getElementById('field-dates').innerText = `${displayDateStart} – ${displayDateEnd}`; // Affiche "jj/mm/aaaa – jj/mm/aaaa"
