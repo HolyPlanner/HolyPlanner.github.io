@@ -704,15 +704,30 @@
                         display: flex;
                         flex-direction: column;
                         align-items: center;
-                        justify-content: center;
-                        gap: 6px;
+                        padding: 8px 10px 6px; /* padding-top commun : ancre l'anneau/l'icône à la même
+                                                   hauteur dans les deux tuiles (remplace justify-content:
+                                                   center + gap, qui centrait chaque bloc dans son ensemble
+                                                   -- avec des blocs de hauteurs différentes, ça désalignait
+                                                   l'anneau et l'icône). Budget vertical serré (80px de haut,
+                                                   anneau/icône 28px + libellé sur 2 lignes) : padding réduit
+                                                   au minimum pour laisser assez de place au texte du bas
+                                                   sans le compresser (voir flex-shrink:0 ci-dessous). */
+                        box-sizing: border-box;
                         font-family: var(--main-font);
                         cursor: pointer;
                         border: none;
                         position: relative;
                         -webkit-tap-highlight-color: transparent;
                     }
-                    .btn-new-trip-tile { border: 2px dashed var(--btn-accent-bg); background-color: #FBE7C4; }
+                    .btn-new-trip-tile {
+                        border: 2px dashed var(--btn-accent-bg);
+                        background-color: #FBE7C4;
+                        /* .btn-past-trips n'a pas de bordure (border:none, héritée) : à padding-top
+                           égal, ces 2px de bordure décaleraient .new-trip-ring 2px plus bas que
+                           .past-trips-icon (offsetTop se mesure depuis l'intérieur de la bordure).
+                           On les retranche ici pour garder les deux alignés horizontalement. */
+                        padding-top: 6px;
+                    }
                     .new-trip-ring {
                         width: 28px; height: 28px;
                         border-radius: 50%;
@@ -722,19 +737,33 @@
                         font-size: 16px;
                         font-weight: bold;
                         line-height: 1;
+                        flex-shrink: 0; /* évite qu'il s'écrase si le libellé sur 2 lignes manque de place
+                                            (même protection que .past-trips-icon) */
                     }
-                    .new-trip-label { font-size: 12px; font-weight: bold; color: var(--btn-accent-bg); text-align: center; line-height: 1.3; }
+                    .new-trip-label {
+                        font-size: 12px; font-weight: bold; color: var(--btn-accent-bg); text-align: center; line-height: 1.3;
+                        margin-top: auto; /* pousse le label tout en bas -- laisse .new-trip-ring ancré en haut par le padding */
+                    }
 
                     .btn-past-trips { background-color: #FFFBF2; box-shadow: 0 4px 10px rgba(38,70,83,.10); }
                     .past-trips-icon {
-                        width: 26px; height: 26px;
+                        width: 28px; height: 28px; /* uniformisé avec .new-trip-ring pour l'alignement horizontal */
                         border-radius: 50%;
                         background: var(--btn-bg-color);
                         display: flex; align-items: center; justify-content: center;
+                        flex-shrink: 0;
                     }
-                    .past-trips-icon svg { width: 12px; height: 12px; display: block; }
-                    .past-trips-title { font-size: 11.5px; font-weight: bold; color: var(--text-color-white); text-align: center; line-height: 1.3; }
-                    .past-trips-count { font-size: 9.5px; color: var(--text-color-white); opacity: .7; }
+                    .past-trips-icon svg { width: 13px; height: 13px; display: block; }
+                    .past-trips-footer {
+                        margin-top: auto; /* pousse titre + compteur tout en bas -- symétrique à .new-trip-label */
+                        width: 100%;
+                        display: flex;
+                        align-items: flex-end; /* aligne le compteur (1 ligne) sur la dernière ligne du titre (2 lignes) */
+                        justify-content: space-between;
+                        gap: 6px;
+                    }
+                    .past-trips-title { font-size: 11.5px; font-weight: bold; color: var(--text-color-white); text-align: left; line-height: 1.3; }
+                    .past-trips-count { font-size: 9.5px; color: var(--text-color-white); opacity: .7; text-align: right; flex-shrink: 0; white-space: nowrap; }
                     .past-trips-chevron { position: absolute; top: 9px; right: 9px; width: 13px; height: 13px; }
 
                 /* --- Vagues de pied d'écran, motif repris du logo --- */
@@ -1062,169 +1091,179 @@
             /* b. Conteneur principale */
             /* ======================= */
                 .trip-home-container {
-                    flex: 1; /* Force le conteneur à prendre tout l'espace vertical restant sous le header */
+                    flex: 1; /* Force le conteneur à prendre tout l'espace vertical de l'écran (plus de header au-dessus) */
                     width: 100%; /* Prend toute la largeur disponible */
                     max-width: 600px; /* Limite la largeur à 600px sur les grands écrans */
                     margin: 0 auto; /* Centre le conteneur horizontalement grâce aux marges auto */
-                    padding: 0 20px 20px 20px; /* HAUT: 0 (collé au header), BAS: 20px (marge de sécurité) */
+                    padding: 16px 20px 20px; /* HAUT: 16px (plus de header à coller), BAS: 20px (marge de sécurité) */
                     box-sizing: border-box; /* Inclut le padding dans le calcul de la largeur totale */
                     display: flex; /* Active Flexbox pour structurer le contenu */
                     flex-direction: column; /* Empile les sections verticalement */
-                    justify-content: space-between; /* Répartit l'espace entre le haut et le bas */
-                    padding-bottom: 40px; /* Ajoute un espace supplémentaire en bas pour l'harmonie */
-                    margin-top: 0;    /* Supprime toute marge en haut du conteneur */
-                    padding-top: 10px; /* Réduit l'espace interne au minimum (ou mettez 0) */
+                    gap: 14px; /* Espace entre couverture / stats / actions -- remplace justify-content:space-between :
+                                  .trip-cover est désormais l'unique section flexible (voir plus bas), les deux
+                                  autres gardent leur taille naturelle. */
                     min-height: 0; /* IMPORTANT : Permet à flex de réduire la taille si besoin */
                 }
                 /* ================= */
-                /* Moitié supérieure */
-                /* ================= */
-                    .trip-info-section {
-                        display: flex; /* Active Flexbox pour les champs */
-                        flex-direction: column; /* Empile les 4 champs verticalement */
-                        gap: 15px; /* Ajoute un espace de 15px entre chaque champ */
-                        margin-bottom: 20px; /* Ajoute un espace sous la section */
-                        flex: 1; /* Prend l'espace disponible de la moitié supérieure */
-                        justify-content: center; /* Centre verticalement les champs dans leur section */
+                /* Couverture : remplace le champ "durée - pays" ET l'ancien   */
+                /* header. flex:1 -- c'est elle qui absorbe l'écart de hauteur */
+                /* pour que stats et actions gardent leur taille naturelle et  */
+                /* tiennent toujours à l'écran sans scroll (voir consigne :    */
+                /* "la couverture est la variable d'ajustement").              */
+                /* ============================================================ */
+                    .trip-cover {
+                        position: relative;
+                        flex: 1 1 auto; /* variable d'ajustement de tout l'écran */
+                        min-height: 96px; /* plancher : ne s'écrase jamais complètement sur un très petit écran */
+                        border-radius: 20px;
+                        overflow: hidden;
+                        box-shadow: 0 12px 24px rgba(38,70,83,.22); /* même ombre que .dashboard-hero */
+                    }
+                    .trip-cover .cover-photo { position: absolute; inset: 0; }
+                    .trip-cover .cover-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+                    .trip-cover .cover-scrim {
+                        position: absolute; inset: 0;
+                        background: linear-gradient(to top, rgba(15,30,33,.90) 0%, rgba(15,30,33,.45) 45%, rgba(15,30,33,0) 68%);
                     }
 
-                    .info-field {
-                        width: 100%; /* Prend toute la largeur du conteneur parent */
-                        height: 60px; /* Définit une hauteur fixe identique pour tous les champs */
-                        border: 2px solid var(--btn-accent-bg); /* Applique une bordure bleu foncé de 2px */
-                        color: var(--text-color-white); /* Applique la couleur bleu foncé au texte */
-                        background: transparent; /* Rend le fond transparent */
-                        box-shadow: 2px 2px 6px var(--btn-bg-color); /* Ajoute une ombre portée pour le relief */
-                        border-radius: 10px; /* Arrondit légèrement les angles */
-                        display: flex; /* Active Flexbox pour centrer le contenu interne */
-                        align-items: center; /* Centre verticalement le contenu */
-                        justify-content: center; /* Centre horizontalement le contenu */
-                        font-size: 20px; /* Définit la taille de la police */
-                        font-weight: bold; /* Met le texte en gras */
-                        text-align: center; /* Centre le texte */
-                        box-sizing: border-box; /* Inclut la bordure dans la hauteur totale */
-                        user-select: none; /* Empêche la sélection du texte (non cliquable) */
-                        pointer-events: none; /* Désactive les événements de souris (clics) */
+                    /* --- Bouton retour = onglet cuir + rivet doré --- */
+                    /* Reprend la recette de .tag-tab (dashboard), agrandie et rendue
+                       cliquable : remplace à la fois l'ancien bouton rond du header
+                       (supprimé) ET l'onglet purement décoratif qui existait ici. */
+                    .cover-back {
+                        position: absolute; top: 0; left: 16px; z-index: 3;
+                        width: 34px; height: 32px;
+                        background: var(--btn-second-color); /* même brun cuir que .tag-tab */
+                        border-radius: 0 0 10px 10px;
+                        border: none;
+                        cursor: pointer;
+                        display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
+                        padding-top: 6px;
+                        box-shadow: 0 4px 9px rgba(0,0,0,.25);
+                        -webkit-tap-highlight-color: transparent;
                     }
-                    /* Champ budget : Budget spécifique (Texte + Pourcentage) */
-                    .budget-field {
-                        justify-content: space-between; /* Écarte le texte et le pourcentage aux extrémités */
-                        padding: 0 15px; /* Ajoute un espace interne horizontal */
-                        position: relative; /* Position relative pour les éléments internes */
+                    .cover-back::before {
+                        content: ""; /* Icône flèche retour, réutilise var(--icon-back) comme .btn-back */
+                        display: block; width: 13px; height: 13px;
+                        background-image: var(--icon-back);
+                        background-repeat: no-repeat; background-position: center; background-size: contain;
                     }
-                    .budget-text {
-                        font-size: 20px; /* Taille de police légèrement plus petite pour les montants */
+                    .cover-back::after {
+                        content: ""; /* Rivet doré, mêmes couleurs que .tag-tab::after */
+                        margin-top: 4px;
+                        width: 5px; height: 5px; border-radius: 50%;
+                        background: #E7B25C; box-shadow: 0 0 0 1.4px #8F5A31;
                     }
+
+                    .trip-cover .duration-pill {
+                        position: absolute; top: 12px; right: 14px;
+                        background: var(--btn-third-color); color: #1B3A3D;
+                        font-weight: bold; font-size: 11px; padding: 4px 10px; border-radius: 20px;
+                    }
+                    .trip-cover .cover-info { position: absolute; left: 16px; right: 16px; bottom: 14px; }
+                    .trip-cover .cover-name { font-size: 21px; font-weight: bold; color: #FFFBF2; margin-bottom: 3px; }
+                    .trip-cover .cover-meta { font-size: 12.5px; color: #DCEAE6; font-weight: 500; }
+
+                /* ============================================================ */
+                /* Chiffres clés : remplace les 4 pavés-contour empilés par des */
+                /* cartes pleines (même carte que .shelf-card du dashboard).    */
+                /* Taille naturelle -- ne bougent pas, c'est .trip-cover qui    */
+                /* s'adapte autour d'elles.                                     */
+                /* ============================================================ */
+                    .trip-stats {
+                        display: grid;
+                        grid-template-columns: 1fr 1fr;
+                        gap: 10px;
+                        flex-shrink: 0;
+                    }
+                    .stat-card {
+                        background-color: #FFFBF2; /* même carte que .shelf-card du dashboard */
+                        border-radius: 14px;
+                        padding: 11px 13px;
+                        box-shadow: 0 5px 12px rgba(38,70,83,.14); /* même ombre que .shelf-card */
+                        display: flex;
+                        flex-direction: column;
+                        gap: 5px;
+                    }
+                    .stat-card.wide { grid-column: 1 / -1; }
+                    .stat-label {
+                        font-size: 10.5px; font-weight: bold; letter-spacing: .05em; text-transform: uppercase;
+                        color: var(--btn-accent-bg);
+                        display: flex; align-items: center; gap: 6px;
+                    }
+                    .stat-label svg { width: 13px; height: 13px; flex-shrink: 0; }
+                    .stat-value { font-size: 16px; font-weight: bold; color: var(--titre-h1-color); }
+
+                    /* --- Carte Budget : barre de progression + pourcentage --- */
+                    .budget-row { display: flex; align-items: baseline; justify-content: space-between; }
                     .budget-percent {
-                        font-size: 24px; /* Taille de police plus grande pour le pourcentage */
-                        font-weight: bold; /* Met le pourcentage en gras */
+                        font-size: 15px; /* Remplace l'ancien style (24px, dans le pavé contour) */
+                        font-weight: bold;
+                        color: var(--btn-accent-bg); /* Couleur par défaut : le JS la bascule en rouge si dépassement (voir openTripHome/updateAllDisplays) */
                     }
-                /* ================= */
-                /* Moitié inférieure */
-                /* ================= */
-                    .trip-actions-section {
-                        display: grid; /* Active CSS Grid pour placer les boutons précisément */
-                        grid-template-columns: 1fr 1fr 1fr; /* Crée 3 colonnes de largeur égale */
-                        grid-template-rows: 1fr 1fr 1fr; /* Crée 3 lignes de hauteur égale */
-                        gap: 10px; /* Espace de 20px entre les boutons */
-                        height: auto; /* Hauteur fixe harmonieuse pour la section boutons */
-                        min-height: 180px; /* Gardez une hauteur minimale pour l'esthétique */
-                        align-items: center; /* Centre verticalement les éléments dans les cellules */
-                        justify-items: center; /* Centre horizontalement les éléments dans les cellules */
-                        flex-shrink: 0; /* Empêche cette section de s'écraser */
+                    .budget-track {
+                        height: 6px; border-radius: 4px; background: rgba(38,70,83,.10); overflow: hidden; margin-top: 2px;
+                    }
+                    .budget-fill {
+                        height: 100%; border-radius: 4px; background: var(--btn-accent-bg); width: 0%;
+                        transition: width .3s ease; /* Mise à jour douce quand le JS recalcule le pourcentage */
                     }
 
-                    .action-btn {
-                        width: clamp(70px, 22vw, 100px); /* Taille fluide : s'adapte à la largeur de l'écran, jamais plus de 100px */
-                        height: clamp(70px, 22vw, 100px); /* Identique en hauteur pour rester un carré/losange parfait */
-                        /*border: 3px solid; /* Bordure de 3px (couleur définie par classe spécifique) */
+                    /* --- Carte Logements : frise de points remplis --- */
+                    .lodging-dots { display: flex; gap: 4px; margin-top: 1px; flex-wrap: wrap; }
+                    .lodging-dots span { width: 9px; height: 9px; border-radius: 50%; background: rgba(38,70,83,.14); }
+                    .lodging-dots span.filled { background: var(--btn-accent-bg); }
+
+                /* ============================================================ */
+                /* Actions : grille de tuiles carrées (même famille visuelle    */
+                /* que .btn-new-trip-tile/.btn-past-trips du dashboard),        */
+                /* remplace la grille de losanges tournés à 45°. Les classes    */
+                /* .btn-orga/.btn-map/.btn-recap/.btn-finance/.btn-docs sont    */
+                /* CONSERVÉES telles quelles : le JS (écouteurs, ripple, effet  */
+                /* rebond) cible ces classes directement, seule leur apparence  */
+                /* change ici.                                                  */
+                /* ============================================================ */
+                    .trip-actions {
+                        display: grid;
+                        grid-template-columns: repeat(3, 1fr);
+                        gap: 10px;
+                        flex-shrink: 0;
+                    }
+
+                    .btn-orga, .btn-map, .btn-recap, .btn-finance, .btn-docs {
+                        background-color: #FFFBF2;
+                        color: var(--titre-h1-color);
+                        border: none;
+                        border-radius: 16px;
+                        padding: 12px 6px 10px;
+                        box-shadow: 0 5px 12px rgba(38,70,83,.14);
                         font-family: var(--main-font); /* Applique la variable de police définie */
-                        font-size: clamp(14px, 4.5vw, 20px); /* Taille de la police du bouton, fluide comme le bouton lui-même */
-                        font-weight: bold; /* Texte en gras */
-                        cursor: pointer; /* Curseur main au survol */
-                        border-radius: 30%; /* Arrondit les angles pour former un losange doux */
-                        transform: rotate(45deg); /* Tourne le bouton de 45 degrés pour l'effet losange */
-                        display: flex; /* Flexbox pour centrer le texte */
-                        align-items: center; /* Centre verticalement */
-                        justify-content: center; /* Centre horizontalement */
-                        box-shadow: 2px 2px 6px rgba(0,0,0,0.3); /* Ombre portée légère */
-                        transition: transform 0.2s; /* Animation fluide au survol/clic */
-                        -webkit-tap-highlight-color: transparent; /* Supprime la surbrillance bleue par défaut au clic/toucher */
-                        /*outline: none; /* Supprime le contour de focus */
+                        display: flex; flex-direction: column; align-items: center; gap: 7px;
+                        cursor: pointer;
+                        /* --- Support de l'effet ripple --- */
+                        position: relative;
+                        overflow: hidden;
+                        -webkit-tap-highlight-color: transparent;
+                    }
+                    .btn-orga .icon-badge, .btn-map .icon-badge, .btn-recap .icon-badge,
+                    .btn-finance .icon-badge, .btn-docs .icon-badge {
+                        width: 38px; height: 38px; border-radius: 50%;
+                        background: var(--btn-accent-bg);
+                        display: flex; align-items: center; justify-content: center;
+                        flex-shrink: 0;
+                    }
+                    .btn-orga .icon-badge svg, .btn-map .icon-badge svg, .btn-recap .icon-badge svg,
+                    .btn-finance .icon-badge svg, .btn-docs .icon-badge svg { width: 18px; height: 18px; }
+                    .btn-orga .btn-label, .btn-map .btn-label, .btn-recap .btn-label,
+                    .btn-finance .btn-label, .btn-docs .btn-label {
+                        font-size: 11px; font-weight: bold; text-align: center; line-height: 1.2;
                     }
 
-                    /* Conteneur du texte pour le remettre droit (compense la rotation du bouton) */
-                    .action-btn span {
-                        transform: rotate(-45deg); /* Tourne le texte de -45 degrés pour qu'il reste droit */
-                    }
+                    /* Gestion (.btn-orga) reste l'action la plus utilisée : mise en avant
+                       en fond plein, comme dans la maquette validée. */
+                    .btn-orga { background-color: var(--btn-accent-bg); color: #FFFBF2; }
+                    .btn-orga .icon-badge { background: #FFFBF2; }
 
-                    /* Couleurs Spécifiques */
-                    .btn-orga {
-                        /*border-color: 2px solid var(--btn-border-color); /* Applique la variable de bordure définie */
-                        background-color: var(--btn-accent-bg); /* Applique la variable de fond définie */
-                        color: var(--text-color-second); /* Applique la variable de couleur de police définie */
-                        grid-column: 1; /* Positionne sur la 1ère colonne */
-                        grid-row: 1; /* Positionne sur la 1ère ligne (Haut Gauche) */
-                        box-shadow: 0px 2px 2px var(--text-color-white);
-                        /* --- */
-                        position: relative;
-                        overflow: hidden;
-                        -webkit-tap-highlight-color: transparent; /* évite le flash gris natif mobile */
-                    }
-                    .btn-finance {
-                        /*border-color: 2px solid var(--btn-border-color); /* Applique la variable de bordure définie */
-                        background-color: var(--btn-accent-bg); /* Applique la variable de fond définie */
-                        color: var(--text-color-second); /* Applique la variable de couleur de police définie */
-                        grid-column: 1; /* Positionne sur la 1ère colonne */
-                        grid-row: 3; /* Positionne sur la 2ème ligne (Bas Gauche) */
-                        box-shadow: 0px 2px 2px var(--text-color-white);
-                        /* --- Support de l'effet ripple --- */
-                        position: relative;
-                        overflow: hidden;
-                        -webkit-tap-highlight-color: transparent;
-                    }
-                    .btn-docs {
-                        /*border-color: 2px solid var(--btn-accent-border); /* Applique la variable de bordure définie */
-                        background-color: var(--btn-accent-bg); /* Applique la variable de fond définie */
-                        color: var(--text-color-second); /* Applique la variable de couleur de police définie */
-                        grid-column: 3; /* Positionne sur la 3ème colonne */
-                        grid-row: 3; /* Positionne sur la 2ème ligne (Bas Droite) */
-                        box-shadow: 0px 2px 2px var(--text-color-white);
-                        /* --- Support de l'effet ripple --- */
-                        position: relative;
-                        overflow: hidden;
-                        -webkit-tap-highlight-color: transparent;
-                    }
-                    .btn-map {
-                        /*border-color: 2px solid var(--btn-accent-border); /* Applique la variable de bordure définie */
-                        background-color: var(--btn-accent-bg); /* Applique la variable de fond définie */
-                        color: var(--text-color-second); /* Applique la variable de couleur de police définie */
-                        grid-column: 3; /* Positionne sur la 3ème colonne */
-                        grid-row: 1; /* Positionne sur la 1ère ligne (Haut Droite) */
-                        box-shadow: 0px 2px 2px var(--text-color-white);
-                        /* --- Support de l'effet ripple --- */
-                        position: relative;
-                        overflow: hidden;
-                        -webkit-tap-highlight-color: transparent;
-                    }
-                    .btn-recap {
-                        /*border-color: 2px solid var(--btn-border-color); /* Applique la variable de bordure définie */
-                        background-color: var(--btn-accent-bg); /* Applique la variable de fond définie */
-                        color: var(--text-color-second); /* Applique la variable de couleur de police définie */
-                        grid-column: 2; /* Positionne sur la 2ème colonne */
-                        grid-row: 2; /* Positionne sur la 2ème ligne (Centre Centre) */
-                        box-shadow: 0px 2px 2px var(--text-color-white);
-                        /* --- Support de l'effet ripple --- */
-                        position: relative;
-                        overflow: hidden;
-                        -webkit-tap-highlight-color: transparent;
-                    }
-                    /* Ajustement grille pour les espaces vides si besoin */
-                    .spacer { 
-                        visibility: hidden; /* Invisible mais prend la place */
-                        width: 100px; /* Même largeur que les boutons pour stabiliser la grille */
-                        height: 100px; /* Même hauteur que les boutons */
-                    }
                     /* Effet Ripple */
                     .ripple {
                         position: absolute;
@@ -1245,7 +1284,8 @@
                     /* Version simple : pour les éléments sans transform de base */
                     .btn-new-trip-tile.bouncing,
                     .btn-past-trips.bouncing,
-                    .options-menu button.bouncing {
+                    .options-menu button.bouncing,
+                    .cover-back.bouncing {
                         animation: bounce-anim 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
                     }
                     @keyframes bounce-anim {
@@ -1267,9 +1307,12 @@
                         100% { transform: scale(1); }
                     }
 
-                    /* .btn-day : rebond plus prononcé qu'avant (demande explicite d'un effet
-                       de clic plus marqué) */
-                    .btn-day.bouncing {
+                    /* .btn-day, et depuis le redesign les tuiles d'action (.btn-recap/
+                       .btn-map/.btn-docs/.btn-finance/.btn-orga, plus rotées à 45° donc
+                       plus besoin d'un keyframe séparé qui conservait rotate(45deg)) :
+                       rebond plus prononcé (demande explicite d'un effet de clic marqué). */
+                    .btn-day.bouncing, .btn-recap.bouncing, .btn-map.bouncing,
+                    .btn-docs.bouncing, .btn-finance.bouncing, .btn-orga.bouncing {
                         animation: bounce-anim-strong 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
                     }
                     @keyframes bounce-anim-strong {
@@ -1277,21 +1320,6 @@
                         40%  { transform: scale(0.78); }
                         70%  { transform: scale(1.12); }
                         100% { transform: scale(1); }
-                    }
-
-                    /* Boutons losanges (.btn-recap/.btn-map/.btn-docs/.btn-finance/.btn-orga) :
-                       même intensité renforcée que .btn-day, mais en conservant rotate(45deg)
-                       (leur transform de base) pour ne pas les "déplier" pendant l'animation -
-                       même principe que bounce-anim-vcenter pour .btn-back. */
-                    .btn-recap.bouncing, .btn-map.bouncing, .btn-docs.bouncing,
-                    .btn-finance.bouncing, .btn-orga.bouncing {
-                        animation: bounce-anim-diamond-strong 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-                    }
-                    @keyframes bounce-anim-diamond-strong {
-                        0%   { transform: rotate(45deg) scale(1); }
-                        40%  { transform: rotate(45deg) scale(0.78); }
-                        70%  { transform: rotate(45deg) scale(1.12); }
-                        100% { transform: rotate(45deg) scale(1); }
                     }
 
                     /* Version centrée : pour .btn-back / .btn-hamburger qui utilisent déjà
@@ -2564,8 +2592,11 @@
                             <span class="past-trips-icon">
                                 <svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#12262A" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
                             </span>
-                            <span class="past-trips-title">Voyages<br>réalisés</span>
-                            <span id="past-trips-count" class="past-trips-count">0 voyage</span>
+                            <!-- Titre bas-gauche + compteur bas-droite (remplace l'empilement centré) -->
+                            <div class="past-trips-footer">
+                                <span class="past-trips-title">Voyages<br>réalisés</span>
+                                <span id="past-trips-count" class="past-trips-count">0 voyage</span>
+                            </div>
                             <svg class="past-trips-chevron" viewBox="0 0 24 24" fill="none"><path d="M9 5l7 7-7 7" stroke="#5B7981" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
                         </button>
                     </div>
@@ -2819,63 +2850,90 @@
         <!-- 04. ÉCRAN D'ACCUEIL DU VOYAGE -->
         <!-- ============================= -->
             <div id="trip-home-screen" class="trip-home-screen"> <!-- Conteneur principal de l'écran -->
-                
-                <!-- Header avec Bouton Retour et Titre -->
-                <header class="trip-home-header"> <!-- En-tête de la page voyage -->
-                    <button class="btn-back" onclick="closeTripHome()">&#8592;</button> <!-- Bouton retour (flèche) qui ferme l'écran -->
-                    <h3 id="trip-home-title">Titre du Voyage</h3> <!-- Titre dynamique du voyage (niveau 3) -->
 
-                </header> <!-- Fin de l'en-tête -->
+                <!-- Plus de header séparé (retiré du redesign) : le contenu remonte,
+                     le titre du voyage vit désormais dans la couverture ci-dessous
+                     (#trip-home-title y est toujours l'id ciblé par openTripHome()). -->
+                <div class="trip-home-container"> <!-- Conteneur flexible occupant tout l'écran -->
 
-                <!-- Conteneur Principal -->
-                <div class="trip-home-container"> <!-- Conteneur flexible occupant le reste de l'espace -->
-                    
-                    <!-- MOITIÉ SUPÉRIEURE : 4 Champs d'infos -->
-                    <div class="trip-info-section"> <!-- Section regroupant les 4 champs d'informations -->
-                        <!-- Champ 1 : Durée & Lieu -->
-                        <div class="info-field" id="field-duration-place"> <!-- Champ 1 : Affiche durée et pays -->
-                            <!-- Contenu injecté par JavaScript -->
-                        </div> <!-- Fin du champ 1 -->
-                        
-                        <!-- Champ 2 : Dates -->
-                        <div class="info-field" id="field-dates"> <!-- Champ 2 : Affiche les dates de début et fin -->
-                            <!-- Contenu injecté par JavaScript -->
-                        </div> <!-- Fin du champ 2 -->
-                        
-                        <!-- Champ 3 : Budget & Calcul (Dépenses/Budget) -->
-                        <div class="info-field budget-field"> <!-- Champ 3 : Affiche budget et pourcentage (layout spécial) -->
-                            <div class="budget-text"> <!-- Conteneur du texte "Dépenses / Budget" -->
-                                Budget : <!-- NOUVEAU : Texte statique -->
-                                <span id="val-expenses">0</span> <!-- Span dynamique pour le montant des dépenses -->
-                                / <!-- Séparateur texte -->
-                                <span id="val-budget">0</span> <!-- Span dynamique pour le montant du budget -->
-                            </div> <!-- Fin du conteneur texte -->
-                            <div class="budget-percent" id="val-percent">%</div> <!-- Div dynamique pour le pourcentage calculé -->
-                        </div> <!-- Fin du champ 3 -->
-                        
-                        <!-- Champ 4 : Logements -->
-                        <div class="info-field" id="field-lodgings"> <!-- Champ 4 : Affiche le ratio de logements réservés -->
-                            <!-- Contenu injecté par JavaScript -->
-                        </div> <!-- Fin du champ 4 -->
-                    </div> <!-- Fin de la section informations -->
+                    <!-- COUVERTURE : remplace le champ "durée - pays" ET l'ancien header.
+                         flex:1 -- c'est elle qui s'ajuste pour que stats + actions tiennent
+                         toujours sans scroll (voir .trip-cover en CSS). -->
+                    <div class="trip-cover">
+                        <div class="cover-photo"><img id="cover-photo" src="" alt=""></div>
+                        <div class="cover-scrim"></div>
 
-                    <!-- MOITIÉ INFÉRIEURE : 3 Boutons Losange -->
-                    <div class="trip-actions-section"> <!-- Section regroupant les boutons d'action -->
-                        <!-- Ligne 1 -->
-                        <button id="btn-orga" class="action-btn btn-orga"><span>Gestion</span></button> <!-- 1. Orga (Haut Gauche) -->
-                        <div class="spacer"></div> <!-- 2. Vide (Haut Centre) -->
-                        <button class="action-btn btn-map"><span>Carte</span></button> <!-- 3. Carte (Haut Droite) -->
+                        <!-- Bouton retour = onglet cuir + rivet doré (même recette que
+                             .tag-tab du dashboard), agrandi et cliquable -->
+                        <button class="cover-back" onclick="closeTripHome()" aria-label="Retour"></button>
 
-                        <!-- LIGNE 2 -->
-                        <div class="spacer"></div> <!-- 4. Vide (Milieu Gauche) -->
-                        <button class="action-btn btn-recap"><span>Synthèse</span></button> <!-- 5. Récap (Centre Centre) -->
-                        <div class="spacer"></div> <!-- 6. Vide (Milieu Droite) -->
+                        <span class="duration-pill" id="cover-duration"><!-- "X jours", injecté par JS --></span>
+                        <div class="cover-info">
+                            <div class="cover-name" id="trip-home-title">Titre du Voyage</div> <!-- Titre dynamique du voyage -->
+                            <div class="cover-meta" id="cover-country"><!-- "Pays 🇫🇷", injecté par JS --></div>
+                        </div>
+                    </div>
 
-                        <!-- LIGNE 3 -->
-                        <button class="action-btn btn-finance"><span>Finance</span></button> <!-- 7. Finance (Bas Gauche) -->
-                        <div class="spacer"></div> <!-- 8. Vide (Bas Centre) -->
-                        <button class="action-btn btn-docs"><span>Document</span></button> <!-- 9. Docs (Bas Droite) -->
-                    </div> <!-- Fin de la section actions -->
+                    <!-- CHIFFRES CLÉS : remplace les 4 pavés-contour empilés -->
+                    <div class="trip-stats">
+                        <!-- Carte 1 : Dates -->
+                        <div class="stat-card">
+                            <div class="stat-label">
+                                <svg viewBox="0 0 24 24" fill="none"><rect x="4" y="5" width="16" height="15" rx="2" stroke="#2E7D7A" stroke-width="2"/><path d="M4 10h16M8 3v4M16 3v4" stroke="#2E7D7A" stroke-width="2" stroke-linecap="round"/></svg>
+                                Dates
+                            </div>
+                            <div class="stat-value" id="field-dates"><!-- Contenu injecté par JavaScript --></div>
+                        </div>
+
+                        <!-- Carte 2 : Logements -->
+                        <div class="stat-card" id="field-lodgings">
+                            <div class="stat-label">
+                                <svg viewBox="0 0 24 24" fill="none"><rect x="4" y="7" width="16" height="12" rx="2" stroke="#2E7D7A" stroke-width="2"/><path d="M4 10h16" stroke="#2E7D7A" stroke-width="2"/><circle cx="16" cy="14" r="1.4" fill="#2E7D7A"/></svg>
+                                Logements
+                            </div>
+                            <div class="stat-value" id="val-lodgings">0 / 0</div>
+                            <div class="lodging-dots" id="lodging-dots"><!-- Frise de points générée par JS --></div>
+                        </div>
+
+                        <!-- Carte 3 : Budget (pleine largeur, avec barre de progression) -->
+                        <div class="stat-card wide">
+                            <div class="stat-label">
+                                <svg viewBox="0 0 24 24" fill="none"><path d="M4 8a2 2 0 012-2h13a1 1 0 011 1v10a2 2 0 01-2 2H6a2 2 0 01-2-2V8z" stroke="#2E7D7A" stroke-width="2"/><path d="M15 12h4" stroke="#2E7D7A" stroke-width="2" stroke-linecap="round"/></svg>
+                                Budget
+                            </div>
+                            <div class="budget-row">
+                                <div class="stat-value">
+                                    <span id="val-expenses">0</span> / <span id="val-budget">0</span>
+                                </div>
+                                <div class="budget-percent" id="val-percent">%</div>
+                            </div>
+                            <div class="budget-track"><div class="budget-fill" id="budget-fill"></div></div>
+                        </div>
+                    </div>
+
+                    <!-- ACTIONS : grille de tuiles (remplace la grille de losanges tournés) -->
+                    <div class="trip-actions">
+                        <button id="btn-orga" class="btn-orga">
+                            <span class="icon-badge"><svg viewBox="0 0 24 24" fill="none"><rect x="4" y="5" width="16" height="15" rx="2" stroke="#2E7D7A" stroke-width="2"/><path d="M4 10h16M8 3v4M16 3v4" stroke="#2E7D7A" stroke-width="2" stroke-linecap="round"/><path d="M8 14l2 2 4-4" stroke="#2E7D7A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+                            <span class="btn-label">Gestion</span>
+                        </button>
+                        <button class="btn-map">
+                            <span class="icon-badge"><svg viewBox="0 0 24 24" fill="none"><path d="M12 21s-7-6.2-7-11a7 7 0 0114 0c0 4.8-7 11-7 11z" stroke="#FFFBF2" stroke-width="2"/><circle cx="12" cy="10" r="2.4" stroke="#FFFBF2" stroke-width="2"/></svg></span>
+                            <span class="btn-label">Carte</span>
+                        </button>
+                        <button class="btn-recap">
+                            <span class="icon-badge"><svg viewBox="0 0 24 24" fill="none"><path d="M5 19V10M12 19V5M19 19v-6" stroke="#FFFBF2" stroke-width="2" stroke-linecap="round"/></svg></span>
+                            <span class="btn-label">Synthèse</span>
+                        </button>
+                        <button class="btn-finance">
+                            <span class="icon-badge"><svg viewBox="0 0 24 24" fill="none"><rect x="3" y="7" width="18" height="12" rx="2" stroke="#FFFBF2" stroke-width="2"/><path d="M3 10h18" stroke="#FFFBF2" stroke-width="2"/><circle cx="16" cy="14.5" r="1.6" stroke="#FFFBF2" stroke-width="2"/></svg></span>
+                            <span class="btn-label">Finance</span>
+                        </button>
+                        <button class="btn-docs">
+                            <span class="icon-badge"><svg viewBox="0 0 24 24" fill="none"><path d="M7 3h7l4 4v14H7V3z" stroke="#FFFBF2" stroke-width="2" stroke-linejoin="round"/><path d="M14 3v4h4" stroke="#FFFBF2" stroke-width="2" stroke-linejoin="round"/><path d="M9.5 13h5M9.5 16.5h5" stroke="#FFFBF2" stroke-width="1.8" stroke-linecap="round"/></svg></span>
+                            <span class="btn-label">Documents</span>
+                        </button>
+                    </div>
                 </div> <!-- Fin du conteneur principal -->
             </div> <!-- Fin de l'écran d'accueil du voyage -->
 
@@ -3017,7 +3075,7 @@
                 // Délégation sur document : .trip-card et .btn-back sont générés/clonés
                 // dynamiquement (nouveaux voyages, nouveaux écrans jour) donc un
                 // querySelectorAll classique attaché une seule fois raterait ces éléments.
-                const BOUNCE_SELECTOR = '.btn-back, .btn-hamburger, .trip-card, .btn-new-trip-tile, .btn-past-trips, .options-menu button, .btn-delete, .btn-day, .btn-recap, .btn-map, .btn-docs, .btn-finance, .btn-orga';
+                const BOUNCE_SELECTOR = '.btn-back, .btn-hamburger, .trip-card, .btn-new-trip-tile, .btn-past-trips, .options-menu button, .btn-delete, .btn-day, .btn-recap, .btn-map, .btn-docs, .btn-finance, .btn-orga, .cover-back';
 
                 function triggerBounce(el) {
                     el.classList.remove('bouncing');
@@ -3243,18 +3301,32 @@
                             // 1. Calcul du nombre de logements
                             const tripData = getTripData(tripId);
                             let lodgingsBooked = 0;
-                            
+
                             Object.values(tripData).forEach(day => {
                                 if (day.lodging_name && day.lodging_name.trim() !== '') {
                                     lodgingsBooked++;
                                 }
                             });
 
-                            // 2. Mise à jour de l'affichage avec la durée reçue
-                            const fieldLogements = document.getElementById('field-lodgings');
-                            if (fieldLogements) {
-                                // Utilise directement la variable duration passée en argument
-                                fieldLogements.innerText = `Logements : ${lodgingsBooked}/${duration}`;
+                            // 2. Mise à jour de l'affichage : valeur "X / Y" + frise de points.
+                            // Remplace l'ancien fieldLogements.innerText qui écrasait tout le
+                            // champ (incompatible avec la carte du redesign, qui a besoin de
+                            // conserver son libellé et sa frise à côté de la valeur).
+                            const valLodgings = document.getElementById('val-lodgings');
+                            if (valLodgings) valLodgings.innerText = `${lodgingsBooked} / ${duration}`;
+
+                            const dotsEl = document.getElementById('lodging-dots');
+                            if (dotsEl) {
+                                // Un point par nuit, plafonné à 12 pour ne pas faire déborder la
+                                // carte sur les voyages très longs (remplissage alors proportionnel).
+                                const totalDots = Math.min(duration || 0, 12);
+                                const filledDots = duration > 0 ? Math.round((lodgingsBooked / duration) * totalDots) : 0;
+                                dotsEl.innerHTML = '';
+                                for (let i = 0; i < totalDots; i++) {
+                                    const dot = document.createElement('span');
+                                    if (i < filledDots) dot.className = 'filled';
+                                    dotsEl.appendChild(dot);
+                                }
                             }
                         }
 
@@ -4247,8 +4319,16 @@
                         // =========================
                         // c. Remplissage des champs
                         // =========================
-                            // Champ 1 : Durée & Lieu
-                            document.getElementById('field-duration-place').innerText = `${trip.duration} jours - ${trip.country} ${trip.flag || ''}`; // Affiche "X jours - Pays Drapeau"
+                            // Couverture : photo, pastille durée, pays -- remplace l'ancien
+                            // champ texte "field-duration-place" (le nom du voyage, lui, est
+                            // déjà posé plus haut sur #trip-home-title, maintenant dans la
+                            // couverture).
+                            const coverPhoto = document.getElementById('cover-photo');
+                            if (coverPhoto) { coverPhoto.src = trip.image || ''; coverPhoto.alt = trip.name || ''; }
+                            const coverDuration = document.getElementById('cover-duration');
+                            if (coverDuration) coverDuration.innerText = `${trip.duration} jours`;
+                            const coverCountry = document.getElementById('cover-country');
+                            if (coverCountry) coverCountry.innerText = `${trip.country} ${trip.flag || ''}`;
 
                             // Champ 2 : Dates -- conversion ISO (AAAA-MM-JJ) -> jj/mm/aaaa pour
                             // l'affichage, même logique que renderDashboard() (voir formatShortDate)
@@ -4262,9 +4342,25 @@
                             const percentEl = document.getElementById('val-percent'); // Sélectionne l'élément du pourcentage
                             percentEl.innerText = percentDisplay; // Insère le texte du pourcentage (ex: "85%")
                             percentEl.style.color = percentColor; // Applique la couleur calculée (vert ou rouge)
+                            updateBudgetBar(budget, expenses); // Synchronise la barre de progression de la carte Budget
 
                             // Afficher l'écran
                             document.getElementById('trip-home-screen').classList.add('active'); // Ajoute la classe 'active' pour rendre l'écran visible (flex)
+                    }
+
+                    // Met à jour la largeur (et la couleur au-delà de 100%) de la barre de
+                    // progression du budget (#budget-fill), appelée depuis openTripHome() et
+                    // depuis updateAllDisplays() (écran Finance) pour rester synchronisées.
+                    function updateBudgetBar(budget, expenses) {
+                        const fill = document.getElementById('budget-fill');
+                        if (!fill) return;
+                        if (budget > 0 && expenses >= 0) {
+                            const ratio = expenses / budget;
+                            fill.style.width = Math.min(Math.round(ratio * 100), 100) + '%';
+                            fill.style.background = (ratio <= 1) ? 'var(--btn-accent-bg)' : '#8B0000';
+                        } else {
+                            fill.style.width = '0%';
+                        }
                     }
 
                         // =======================
@@ -4426,6 +4522,7 @@
                                             percentEl.style.color = (ratio <= 1) ? "#006400" : "#8B0000";
                                         }
                                     }
+                                    updateBudgetBar(budget, expenses); // Synchronise la barre de progression de la carte Budget
 
                                     // C. --- SAUVEGARDE AUTOMATIQUE ---
                                     saveFinanceData(budget, expenses, tricountUrl);
