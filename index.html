@@ -41,10 +41,14 @@
             /* Icône de la flèche de retour (.btn-back), en fichier SVG local
                (icons/back-arrow.svg) plutôt qu'en caractère Unicode ou en data-URI
                encodée : plus lisible et modifiable directement dans le fichier SVG.
-               Couleur figée à l'intérieur du fichier (#264653, = --text-color-white
-               actuelle) : currentColor ne s'hérite pas de façon fiable pour une image
-               chargée via url(), contrairement à un <svg> inline dans le HTML. Si tu
-               changes --text-color-white plus tard, pense à éditer aussi le fichier SVG. */
+               Utilisée en mask-image (voir .btn-back::before) et non plus en
+               background-image : currentColor ne s'hérite pas de façon fiable pour une
+               image chargée via url(), mais une image utilisée comme masque peut être
+               recolorée librement via background-color côté CSS -- la couleur du fichier
+               SVG lui-même n'a donc plus d'importance (seule sa silhouette compte). Ça
+               permet à la même flèche d'être sombre sur fond clair (connexion/inscription)
+               ET crème sur la lanière en cuir (voir le groupe de sélecteurs plus bas), sans
+               dupliquer le fichier. */
             --icon-back: url("icons/back-arrow.svg");
             }
 
@@ -467,14 +471,19 @@
                     -webkit-tap-highlight-color: transparent; /* Supprime la surbrillance bleue par défaut au clic/toucher */
                 }
                 .btn-back::before {
-                    content: ""; /* Pseudo-élément vide : l'icône vient du background-image ci-dessous */
+                    content: ""; /* Pseudo-élément vide : l'icône vient du masque ci-dessous */
                     display: block;
                     width: 20px;
                     height: 20px;
-                    background-image: var(--icon-back);
-                    background-repeat: no-repeat;
-                    background-position: center;
-                    background-size: contain;
+                    background-color: var(--text-color-white); /* Couleur par défaut (connexion/inscription, fond clair) -- surchargée en crème sur la lanière en cuir, voir plus bas */
+                    -webkit-mask-image: var(--icon-back);
+                    mask-image: var(--icon-back);
+                    -webkit-mask-repeat: no-repeat;
+                    mask-repeat: no-repeat;
+                    -webkit-mask-position: center;
+                    mask-position: center;
+                    -webkit-mask-size: contain;
+                    mask-size: contain;
                 }
 
             /* ============================== */
@@ -918,35 +927,60 @@
                     0%, 100% { transform: scale(1); opacity: 1; }
                     50% { transform: scale(0.92); opacity: 0.75; }
                 }
+                /* Modale très fréquente (ouverte depuis tous les champs heure des fiches
+                   jour) : mérite la même carte "premium" que "Ajouter un voyage" (rayon
+                   20px + ombre chaude) plutôt que le rayon/ombre noire génériques partagés
+                   avec les modales occasionnelles. */
+                #time-picker-modal .modal-content-add {
+                    border-radius: 20px;
+                    box-shadow: 0 16px 32px rgba(38,70,83,.28);
+                }
                 .time-picker-content {
-                    padding: 25px 20px;
+                    padding: 24px 20px;
                     align-items: center;
                     text-align: center;
                 }
-                .time-picker-content h3 {
-                    margin: 0 0 20px 0;
-                    color: var(--titre-h1-color);
+                .time-picker-content .modal-icon-head {
+                    justify-content: center;
+                    margin-bottom: 18px;
                 }
                 .time-picker-selects {
                     display: flex;
                     align-items: center;
                     justify-content: center;
-                    gap: 8px;
-                    margin-bottom: 25px;
+                    gap: 10px;
+                    margin-bottom: 22px;
+                }
+                /* Capsule "en creux" menthe -- même recette que .day-input -- au lieu de la
+                   bordure encre plate d'origine. */
+                .time-picker-cap {
+                    width: 74px;
+                    height: 62px;
+                    border-radius: 16px;
+                    background: linear-gradient(180deg, #93C0A9 0%, #ACD6C4 100%);
+                    box-shadow: inset 0 3px 6px rgba(27,55,50,.3), inset 0 -1px 0 rgba(255,255,255,.5);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
                 }
                 .time-picker-selects select {
-                    font-size: 28px;
-                    font-weight: bold;
+                    width: 100%;
+                    height: 100%;
+                    font-size: 26px;
+                    font-weight: 900;
                     font-family: var(--main-font);
-                    color: var(--titre-h1-color);
-                    border: 2px solid var(--text-color-white);
-                    border-radius: 10px;
-                    padding: 8px 10px;
+                    font-variant-numeric: tabular-nums;
+                    text-align: center;
+                    color: var(--text-color-white);
+                    border: none;
                     background: transparent;
+                    appearance: none;
+                    -webkit-appearance: none;
+                    cursor: pointer;
                 }
                 .time-picker-sep {
-                    font-size: 28px;
-                    font-weight: bold;
+                    font-size: 26px;
+                    font-weight: 900;
                     color: var(--titre-h1-color);
                 }
                 .time-picker-content .nav-buttons {
@@ -1189,7 +1223,8 @@
                 .day-home-header .btn-back::before,
                 .trip-home-header .btn-back::before,
                 .modal-add-header .btn-back::before {
-                    width: 15px; height: 15px; /* Réduit (était 20px) pour tenir dans la lanière plus étroite */
+                    width: 17px; height: 17px; /* Réduit par rapport aux 20px de base pour tenir dans la lanière étroite, mais agrandi (était 15px) pour plus de lisibilité */
+                    background-color: #FFFBF2; /* Crème clair plutôt que le vert foncé par défaut : bien plus visible sur le dégradé cuir (voir masque hérité de .btn-back::before) */
                 }
                 .dashboard-header .btn-back::after,
                 .day-detail-header .btn-back::after,
@@ -1258,10 +1293,17 @@
                         -webkit-tap-highlight-color: transparent;
                     }
                     .cover-back::before {
-                        content: ""; /* Icône flèche retour, réutilise var(--icon-back) comme .btn-back */
-                        display: block; width: 13px; height: 13px;
-                        background-image: var(--icon-back);
-                        background-repeat: no-repeat; background-position: center; background-size: contain;
+                        content: ""; /* Icône flèche retour, réutilise var(--icon-back) comme .btn-back (masque, voir plus haut) */
+                        display: block; width: 14px; height: 14px;
+                        background-color: #FFFBF2; /* Même crème que les autres lanières, pour la visibilité sur le cuir */
+                        -webkit-mask-image: var(--icon-back);
+                        mask-image: var(--icon-back);
+                        -webkit-mask-repeat: no-repeat;
+                        mask-repeat: no-repeat;
+                        -webkit-mask-position: center;
+                        mask-position: center;
+                        -webkit-mask-size: contain;
+                        mask-size: contain;
                     }
                     .cover-back::after {
                         content: ""; /* Rivet doré, mêmes couleurs que .tag-tab::after */
@@ -2115,8 +2157,9 @@
                 padding: 15px;
                 overflow: visible; /* Le contenu définit sa propre hauteur, rien à couper */
                 box-sizing: border-box;
-                transform: scale(0.95); /* Rendu légèrement réduit pour chaque jour dans la liste */
-                transform-origin: top center;
+                /* Anciennement scale(0.95) (légèrement réduit) : repassé à la taille réelle
+                   pour que les cartes/champs/libellés du récap gardent le même poids visuel
+                   que sur l'écran plein format, plutôt que de paraître un cran plus petits. */
             }
 
             /* Empêche les titres (jour + date, ou "Finances") de retourner à la ligne
@@ -2166,6 +2209,15 @@
                 min-height: 60px;
                 overflow: hidden; /* Pas de barre de scroll, la hauteur suit le contenu */
             }
+            /* .activities-block .day-textarea (carte "Activités" du nouveau design) est en
+               flex:1 sur l'écran plein format, pour remplir la carte jusqu'en bas. Avec
+               flex:1 (flex-basis:0%), la hauteur fixée en JS via scrollHeight ci-dessus
+               serait ignorée par le calcul flex -- le texte se retrouvait tronqué sans
+               scroll visible dans le récap. On repasse en flex:none pour que le textarea
+               ne prenne QUE la hauteur donnée par le JS (son contenu réel). */
+            #recap-days-stack .activities-block .day-textarea {
+                flex: none;
+            }
 
             /* ================================ */
             /* ÉCRAN CARTE (.btn-map) */
@@ -2183,12 +2235,26 @@
                 #map-screen.active {
                     display: flex;
                 }
+                /* Header plein (crème + ombre portée), au lieu du filet 1px partagé par
+                   .day-detail-header : ici le fond sous le titre n'est plus la couleur
+                   sable mais la carte Leaflet -- un simple trait ne suffit plus à séparer
+                   proprement le titre du contenu. */
+                #map-screen .day-detail-header {
+                    background: #FFFBF2;
+                    border-bottom: none;
+                    box-shadow: 0 4px 10px rgba(38,70,83,.14);
+                    position: relative;
+                    z-index: 320;
+                }
                 #map-leaflet-container {
                     flex: 1;
                     width: 100%;
                     min-height: 0; /* Important en flex pour que Leaflet calcule une vraie hauteur */
                 }
-                /* Barre d'outils flottante, au-dessus de la carte */
+                /* --- Dock d'actions flottant, au-dessus de la carte --- */
+                /* Remplace l'ancienne pilule mint/teal plate par la même famille visuelle
+                   que .trip-actions (badge rond accent + libellé), pour que la carte se
+                   sente de la même app que le reste de l'écran voyage. */
                 .map-toolbar {
                     position: absolute;
                     bottom: 20px;
@@ -2196,42 +2262,66 @@
                     transform: translateX(-50%);
                     z-index: 1000; /* Au-dessus des tuiles Leaflet (qui utilisent leurs propres z-index internes) */
                     display: flex;
-                    gap: 10px;
-                    background: var(--couleur-fond-modal);
-                    padding: 10px 14px;
-                    border-radius: 30px;
-                    box-shadow: 0 2px 10px rgba(0,0,0,0.25);
+                    gap: 4px;
+                    background: #FFFBF2;
+                    padding: 8px;
+                    border-radius: 26px;
+                    box-shadow: 0 10px 24px rgba(38,70,83,.3);
                 }
                 .map-toolbar button {
                     border: none;
-                    border-radius: 20px;
-                    padding: 10px 16px;
+                    background: none;
+                    padding: 4px 10px;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    gap: 4px;
                     font-family: var(--main-font);
-                    font-weight: bold;
-                    font-size: 14px;
                     cursor: pointer;
-                    background: var(--btn-bg-color);
-                    color: var(--text-color-white);
+                    -webkit-tap-highlight-color: transparent;
                 }
-                .map-toolbar button.map-toolbar-active {
+                .map-toolbar .map-toolbar-badge {
+                    width: 34px;
+                    height: 34px;
+                    border-radius: 50%;
                     background: var(--btn-accent-bg);
-                    color: var(--text-color-second);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    transition: background .15s ease, transform .15s ease;
+                }
+                .map-toolbar .map-toolbar-badge svg { width: 16px; height: 16px; }
+                .map-toolbar button:active .map-toolbar-badge { transform: scale(.9); }
+                /* .map-toolbar-active (posé dynamiquement, réservé) et .map-toolbar-warn
+                   (Filtrer / Annuler, boutons "à part" du flux normal) partagent le même
+                   traitement : badge recoloré en orange plutôt qu'en accent. */
+                .map-toolbar button.map-toolbar-active .map-toolbar-badge,
+                .map-toolbar button.map-toolbar-warn .map-toolbar-badge {
+                    background: var(--btn-third-color);
+                }
+                .map-toolbar span.map-toolbar-label {
+                    font-size: 9px;
+                    font-weight: bold;
+                    letter-spacing: .03em;
+                    text-transform: uppercase;
+                    color: var(--titre-h1-color);
                 }
                 /* Bandeau d'instructions pendant le placement d'un point ou d'un itinéraire */
                 .map-instructions {
                     display: none;
                     position: absolute;
-                    top: 90px;
+                    top: 14px;
                     left: 50%;
                     transform: translateX(-50%);
                     z-index: 1000;
                     background: var(--btn-accent-bg);
                     color: var(--text-color-second);
-                    padding: 10px 18px;
-                    border-radius: 20px;
+                    padding: 10px 20px;
+                    border-radius: 24px;
+                    box-shadow: 0 8px 18px rgba(38,70,83,.32);
                     font-family: var(--main-font);
                     font-weight: bold;
-                    font-size: 14px;
+                    font-size: 13px;
                     text-align: center;
                     max-width: 90%;
                 }
@@ -2239,71 +2329,196 @@
                     display: block;
                 }
                 /* Couleurs par mode de transport, réutilisées en CSS et en JS
-                   (voir MAP_MODE_COLORS dans le script) */
+                   (voir MAP_MODE_COLORS dans le script) -- reprennent les 3 teintes déjà
+                   en usage ailleurs dans l'app (accent / orange / cuir) plutôt que le
+                   bleu/vert/orange génériques d'origine, hors charte. */
                 :root {
-                    --map-color-car: #3b82f6;    /* Bleu */
-                    --map-color-bike: #22c55e;   /* Vert */
-                    --map-color-hiking: #f97316; /* Orange */
+                    --map-color-car: #2E7D7A;    /* Accent (même que --btn-accent-bg) */
+                    --map-color-bike: #F4963A;   /* Orange (même que --btn-third-color) */
+                    --map-color-hiking: #C47F4D; /* Cuir (même que --btn-second-color) */
                 }
                 .map-legend {
                     position: absolute;
-                    top: 90px;
-                    right: 15px;
+                    top: 14px;
+                    right: 12px;
                     z-index: 900;
-                    background: var(--couleur-fond-modal);
-                    padding: 8px 12px;
-                    border-radius: 10px;
-                    font-family: var(--main-font);
-                    font-size: 12px;
-                    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+                    background: #FFFBF2;
+                    padding: 9px 12px;
+                    border-radius: 12px;
+                    box-shadow: 0 5px 12px rgba(38,70,83,.14);
                 }
-                .map-legend div { display: flex; align-items: center; gap: 6px; margin: 3px 0; }
-                .map-legend span.map-legend-dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
+                .map-legend-title {
+                    font-size: 9px;
+                    font-weight: bold;
+                    letter-spacing: .06em;
+                    text-transform: uppercase;
+                    color: var(--btn-accent-bg);
+                    margin-bottom: 6px;
+                }
+                .map-legend div { display: flex; align-items: center; gap: 6px; margin: 4px 0; font-family: var(--main-font); }
+                .map-legend span.map-legend-dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
+                .map-legend span.map-legend-label { font-size: 11px; font-weight: 500; color: var(--titre-h1-color); }
 
                 /* Petite modale de saisie (jour + libellé pour un point, ou jour + mode
                    pour un itinéraire) -- réutilise .modal-overlay comme le sélecteur d'heure */
                 .map-form-content {
                     padding: 20px;
-                    text-align: center;
                 }
-                .map-form-content h3 {
-                    margin: 0 0 15px 0;
+                /* En-tête de modale à badge rond + titre, même recette que
+                   .finance-card-label/.stat-label (icône + libellé) plutôt qu'un simple
+                   <h3> posé à nu. Générique (nom sans "map") : utilisé par les 3 modales
+                   carte ci-dessous, mais aussi par "Nouveau document" et le sélecteur
+                   d'heure plus loin dans le fichier. */
+                .modal-icon-head {
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                    margin-bottom: 16px;
+                }
+                .modal-icon-head .modal-icon-badge {
+                    width: 32px;
+                    height: 32px;
+                    border-radius: 50%;
+                    flex-shrink: 0;
+                    background: var(--btn-accent-bg);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                }
+                .modal-icon-head .modal-icon-badge svg { width: 16px; height: 16px; }
+                .modal-icon-head h3 {
+                    margin: 0;
                     color: var(--titre-h1-color);
+                    font-size: 17px;
                 }
+                .map-form-content p.map-block-label {
+                    font-size: 10.5px;
+                    font-weight: bold;
+                    letter-spacing: .05em;
+                    text-transform: uppercase;
+                    color: var(--btn-accent-bg);
+                    margin: 0 0 8px 0;
+                }
+                /* Champs "en creux" menthe -- même recette que .day-input (fiches jour) --
+                   au lieu de la bordure grise plate d'origine. */
                 .map-form-content select,
-                .map-form-content input {
+                .map-form-content input,
+                .map-form-content textarea {
                     width: 100%;
-                    padding: 10px;
+                    height: 46px;
+                    padding: 0 14px;
                     margin-bottom: 12px;
-                    border: 2px solid var(--text-color-white);
-                    border-radius: 8px;
+                    border: none;
+                    border-radius: 14px;
+                    background: linear-gradient(180deg, #93C0A9 0%, #ACD6C4 100%);
+                    box-shadow: inset 0 3px 5px rgba(27,55,50,.28), inset 0 -1px 0 rgba(255,255,255,.5);
+                    color: var(--text-color-white);
                     font-family: var(--main-font);
-                    font-size: 16px;
+                    font-size: 15px;
+                    font-weight: bold;
                     box-sizing: border-box;
+                    appearance: none;
+                    -webkit-appearance: none;
                 }
+                .map-form-content select { cursor: pointer; }
+                .map-form-content textarea {
+                    height: auto;
+                    padding: 12px 14px;
+                    font-weight: 500;
+                    font-size: 14px;
+                    resize: vertical;
+                }
+                .map-form-content select:focus,
+                .map-form-content input:focus,
+                .map-form-content textarea:focus {
+                    outline: none;
+                    box-shadow: inset 0 3px 5px rgba(27,55,50,.28), inset 0 -1px 0 rgba(255,255,255,.5), 0 0 0 3px rgba(46,125,122,.35);
+                }
+                /* Flèche custom au-dessus des <select> (appearance:none masque celle du
+                   navigateur) */
+                .map-select-wrap { position: relative; }
+                .map-select-wrap::after {
+                    content: "▾";
+                    position: absolute;
+                    right: 14px;
+                    top: 14px;
+                    color: var(--text-color-white);
+                    font-size: 12px;
+                    pointer-events: none;
+                }
+
+                /* --- Puces de type de POI / de filtre (remplacent selects et bordures
+                   plates par le même composant que le reste de l'app) --- */
+                .map-type-chips {
+                    display: flex;
+                    flex-wrap: wrap;
+                    gap: 7px;
+                    margin-bottom: 12px;
+                }
+                .map-type-chip {
+                    border: none;
+                    border-radius: 13px;
+                    padding: 7px 11px;
+                    background: #FFFBF2;
+                    color: var(--titre-h1-color);
+                    font-family: var(--main-font);
+                    font-weight: bold;
+                    font-size: 12px;
+                    display: flex;
+                    align-items: center;
+                    gap: 5px;
+                    cursor: pointer;
+                    box-shadow: 0 2px 5px rgba(38,70,83,.1);
+                }
+                .map-type-chip.map-type-chip-active {
+                    background: var(--btn-accent-bg);
+                    color: var(--text-color-second);
+                    box-shadow: 0 4px 10px rgba(38,70,83,.28);
+                }
+
                 .map-mode-choice {
                     display: flex;
                     gap: 8px;
-                    margin-bottom: 12px;
+                    margin-bottom: 14px;
+                    justify-content: space-between;
                 }
                 .map-mode-choice button {
                     flex: 1;
-                    padding: 10px 5px;
-                    border-radius: 8px;
-                    border: 2px solid var(--text-color-white);
-                    background: transparent;
+                    border: none;
+                    background: none;
+                    padding: 0;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    gap: 6px;
                     font-family: var(--main-font);
-                    font-weight: bold;
-                    font-size: 13px;
                     cursor: pointer;
                 }
-                .map-mode-choice button.map-mode-selected {
-                    color: var(--text-color-second);
-                    border-color: transparent;
+                .map-mode-choice .map-mode-badge {
+                    width: 46px;
+                    height: 46px;
+                    border-radius: 50%;
+                    background: #FFFBF2;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 19px;
+                    box-shadow: 0 2px 6px rgba(38,70,83,.12);
+                    transition: box-shadow .15s ease;
                 }
-                .map-mode-choice button[data-mode="car"].map-mode-selected { background: var(--map-color-car); }
-                .map-mode-choice button[data-mode="bike"].map-mode-selected { background: var(--map-color-bike); }
-                .map-mode-choice button[data-mode="hiking"].map-mode-selected { background: var(--map-color-hiking); }
+                .map-mode-choice span.map-mode-name {
+                    font-size: 11px;
+                    font-weight: bold;
+                    color: var(--titre-h1-color);
+                }
+                /* Sélection = anneau de la couleur du mode (même recette de halo que
+                   .btn-day au survol), plutôt qu'un simple remplissage plat */
+                .map-mode-choice button[data-mode="car"] { --mode-color: var(--map-color-car); }
+                .map-mode-choice button[data-mode="bike"] { --mode-color: var(--map-color-bike); }
+                .map-mode-choice button[data-mode="hiking"] { --mode-color: var(--map-color-hiking); }
+                .map-mode-choice button.map-mode-selected .map-mode-badge {
+                    box-shadow: 0 0 0 3px var(--couleur-fond-modal), 0 0 0 5px var(--mode-color, var(--btn-accent-bg)), 0 6px 12px rgba(38,70,83,.25);
+                }
 
                 /* --- Marqueurs de points d'intérêt, style "pin" moderne (inspiré Mapstr) --- */
                 .map-poi-pin {
@@ -2312,8 +2527,8 @@
                     border-radius: 50% 50% 50% 0;
                     transform: rotate(-45deg);
                     background: var(--btn-accent-bg);
-                    border: 3px solid white;
-                    box-shadow: 0 2px 6px rgba(0,0,0,0.35);
+                    border: 3px solid #FFFBF2;
+                    box-shadow: 0 4px 10px rgba(38,70,83,.35);
                     display: flex;
                     align-items: center;
                     justify-content: center;
@@ -2322,80 +2537,134 @@
                     transform: rotate(45deg);
                     font-size: 16px;
                 }
-                /* Popup Leaflet retouché pour matcher le style de l'app */
+                /* Popup Leaflet retouché pour matcher le style de l'app : carte crème
+                   (même famille que .day-poi-item) au lieu du blanc/gris par défaut */
                 .leaflet-popup-content-wrapper {
-                    border-radius: 12px !important;
+                    border-radius: 14px !important;
+                    background: #FFFBF2 !important;
+                    box-shadow: 0 12px 26px rgba(38,70,83,.3) !important;
                 }
+                .leaflet-popup-tip { background: #FFFBF2 !important; }
                 .map-poi-popup {
                     font-family: var(--main-font);
                     min-width: 160px;
                 }
                 .map-poi-popup .map-poi-popup-title {
                     font-weight: bold;
-                    font-size: 15px;
+                    font-size: 14.5px;
                     color: var(--titre-h1-color);
                     margin-bottom: 2px;
                 }
                 .map-poi-popup .map-poi-popup-day {
-                    font-size: 12px;
-                    color: #777;
+                    font-size: 10.5px;
+                    font-weight: bold;
+                    letter-spacing: .03em;
+                    text-transform: uppercase;
+                    color: var(--btn-accent-bg);
                     margin-bottom: 6px;
                 }
                 .map-poi-popup .map-poi-popup-comment {
-                    font-size: 13px;
+                    font-size: 12.5px;
+                    color: var(--text-color-white);
+                    opacity: .75;
                     margin-bottom: 8px;
                     white-space: pre-wrap;
                 }
                 .map-poi-popup button {
                     border: none;
-                    border-radius: 6px;
-                    padding: 5px 10px;
+                    border-radius: 8px;
+                    padding: 6px 11px;
+                    font-family: var(--main-font);
                     font-weight: bold;
-                    font-size: 12px;
+                    font-size: 11.5px;
                     cursor: pointer;
                     margin-right: 5px;
                 }
                 .map-poi-popup .map-poi-popup-edit { background: var(--btn-accent-bg); color: var(--text-color-second); }
-                .map-poi-popup .map-poi-popup-gpx { background: #6b21a8; color: white; }
+                .map-poi-popup .map-poi-popup-gpx { background: transparent; color: var(--titre-h1-color); border: 1.6px solid var(--titre-h1-color); }
 
-                /* --- Puces de filtre (jours / types) --- */
-                .map-filter-chip {
-                    padding: 7px 12px;
-                    border-radius: 16px;
-                    border: 2px solid var(--text-color-white);
-                    background: transparent;
+                /* --- Boutons Annuler/Confirmer des modales point d'intérêt et itinéraire :
+                   même paire dégradé plein / contour fantôme que le reste de l'app
+                   (#time-picker-confirm/cancel), au lieu de boutons sans aucun style. --- */
+                .map-form-content .nav-buttons button {
+                    flex: 1;
+                    height: 46px;
+                    padding: 0 12px;
+                    border: none;
+                    border-radius: 14px;
                     font-family: var(--main-font);
-                    font-size: 13px;
                     font-weight: bold;
+                    font-size: 14px;
                     cursor: pointer;
+                    -webkit-tap-highlight-color: transparent;
                 }
-                .map-filter-chip.map-filter-chip-active {
+                #map-poi-cancel, #map-route-cancel {
+                    background: transparent;
+                    border: 2px solid var(--text-color-white) !important;
+                    color: var(--text-color-white);
+                }
+                #map-poi-confirm, #map-route-start {
                     background: var(--btn-accent-bg);
                     color: var(--text-color-second);
-                    border-color: transparent;
+                    display: flex; align-items: center; justify-content: center; gap: 6px;
                 }
-                /* 3 boutons dans .nav-buttons pour cette modale précise : autorise le
-                   retour à la ligne proprement plutôt que de les écraser sur une ligne */
+                #map-route-start svg { width: 15px; height: 15px; }
+
+                /* --- Puces de filtre (jours / types) : même composant que .map-type-chip
+                   -- le JS existant assigne la classe .map-filter-chip aux boutons qu'il
+                   génère dynamiquement, on la stylise donc ici plutôt que de toucher au JS. --- */
+                #map-filter-days .map-filter-chip,
+                #map-filter-types .map-filter-chip {
+                    border: none;
+                    border-radius: 13px;
+                    padding: 7px 12px;
+                    background: #FFFBF2;
+                    color: var(--titre-h1-color);
+                    font-family: var(--main-font);
+                    font-size: 12.5px;
+                    font-weight: bold;
+                    cursor: pointer;
+                    box-shadow: 0 2px 5px rgba(38,70,83,.1);
+                }
+                #map-filter-days .map-filter-chip.map-filter-chip-active,
+                #map-filter-types .map-filter-chip.map-filter-chip-active {
+                    background: var(--btn-accent-bg);
+                    color: var(--text-color-second);
+                    box-shadow: 0 4px 10px rgba(38,70,83,.28);
+                }
+                /* Hiérarchie claire : "Appliquer" seul en pleine largeur devant, les deux
+                   réglages secondaires en retrait dessous -- remplace les 3 boutons à
+                   poids égal d'origine. */
                 #map-filter-modal .nav-buttons {
-                    flex-wrap: wrap;
+                    flex-direction: column;
                     gap: 8px;
                 }
-                #map-filter-modal .nav-buttons button {
-                    flex: 1 1 auto;
-                    min-width: 100px;
-                    padding: 10px 8px;
-                    border-radius: 8px;
-                    border: 2px solid var(--text-color-white);
-                    background: transparent;
+                #map-filter-modal #map-filter-apply {
+                    padding: 13px 8px;
+                    border: none;
+                    border-radius: 12px;
                     font-family: var(--main-font);
                     font-weight: bold;
-                    font-size: 13px;
+                    font-size: 15px;
                     cursor: pointer;
-                }
-                #map-filter-modal #map-filter-apply {
                     background: var(--btn-accent-bg);
                     color: var(--text-color-second);
-                    border-color: transparent;
+                }
+                .map-filter-secondary-row {
+                    display: flex;
+                    gap: 8px;
+                }
+                .map-filter-secondary-row button {
+                    flex: 1;
+                    padding: 10px 8px;
+                    border-radius: 10px;
+                    border: 2px solid var(--text-color-white);
+                    background: transparent;
+                    color: var(--text-color-white);
+                    font-family: var(--main-font);
+                    font-weight: bold;
+                    font-size: 12.5px;
+                    cursor: pointer;
                 }
 
             /* ================================ */
@@ -2428,19 +2697,44 @@
                     padding: 20px;
                     gap: 15px;
                 }
+                /* Entrée Checklist : tuile pleine dégradée + badge + chevron, même famille
+                   que .btn-orga/.btn-map/... (écran voyage), au lieu d'un simple bouton
+                   plat de la même couleur que les boutons "Ajouter" des modales. */
                 .docs-checklist-btn {
                     width: 100%;
                     max-width: 400px;
-                    padding: 16px;
+                    display: flex;
+                    align-items: center;
+                    gap: 12px;
+                    padding: 14px 16px;
                     border: none;
-                    border-radius: 12px;
-                    background: var(--btn-accent-bg);
-                    color: var(--text-color-second);
-                    font-family: var(--main-font);
-                    font-weight: bold;
-                    font-size: 18px;
+                    border-radius: 16px;
+                    background: linear-gradient(165deg, #3F958D 0%, #235F5C 100%);
+                    box-shadow: 0 5px 12px rgba(38,70,83,.14);
                     cursor: pointer;
                 }
+                .docs-checklist-badge {
+                    width: 38px;
+                    height: 38px;
+                    border-radius: 50%;
+                    background: #FFFBF2;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    flex-shrink: 0;
+                }
+                .docs-checklist-badge svg { width: 19px; height: 19px; }
+                .docs-checklist-text {
+                    flex: 1;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 1px;
+                    text-align: left;
+                }
+                .docs-checklist-title { font-family: var(--main-font); font-weight: bold; font-size: 15.5px; color: #FFFBF2; }
+                .docs-checklist-sub { font-family: var(--main-font); font-weight: 500; font-size: 11.5px; color: #DCEAE6; }
+                .docs-checklist-chevron { color: #FFFBF2; font-size: 20px; font-weight: 900; opacity: .8; }
+
                 .docs-list {
                     width: 100%;
                     max-width: 400px;
@@ -2448,57 +2742,109 @@
                     flex-direction: column;
                     gap: 10px;
                 }
+                /* Carte crème (même famille que .day-poi-item/.stat-card) au lieu de
+                   l'encart translucide à bordure 2px d'origine. */
                 .docs-item {
                     display: flex;
                     align-items: center;
                     justify-content: space-between;
                     gap: 10px;
-                    padding: 12px 14px;
-                    background: rgba(255,255,255,0.5);
-                    border: 2px solid var(--text-color-white);
-                    border-radius: 10px;
+                    padding: 10px 11px;
+                    background: #FFFBF2;
+                    border-radius: 14px;
+                    box-shadow: 0 5px 12px rgba(38,70,83,.14);
                 }
                 .docs-item-info {
                     display: flex;
                     align-items: center;
-                    gap: 10px;
+                    gap: 11px;
                     overflow: hidden;
                     text-decoration: none;
-                    color: var(--titre-h1-color);
                     font-family: var(--main-font);
-                    font-weight: bold;
                 }
-                .docs-item-info span.docs-item-icon { font-size: 20px; flex-shrink: 0; }
+                .docs-item-info span.docs-item-icon {
+                    width: 34px;
+                    height: 34px;
+                    border-radius: 50%;
+                    background: var(--btn-bg-color);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 15px;
+                    flex-shrink: 0;
+                }
+                .docs-item-text {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 1px;
+                    overflow: hidden;
+                }
                 .docs-item-info span.docs-item-label {
+                    font-weight: bold;
+                    font-size: 13.5px;
+                    color: var(--titre-h1-color);
                     white-space: nowrap;
                     overflow: hidden;
                     text-overflow: ellipsis;
                 }
-                .docs-item-delete {
-                    border: none;
-                    background: #e5484d;
-                    color: white;
-                    border-radius: 6px;
-                    padding: 6px 10px;
+                .docs-item-info span.docs-item-sub {
+                    font-size: 10.5px;
                     font-weight: bold;
+                    letter-spacing: .04em;
+                    text-transform: uppercase;
+                    color: var(--btn-accent-bg);
+                }
+                /* Icône ronde rouge pastel : remplace le pavé "Suppr." plein, mieux adapté
+                   à une ligne de liste compacte. Rouge #e5484d inchangé (sémantique). */
+                .docs-item-delete {
+                    width: 28px;
+                    height: 28px;
+                    border-radius: 50%;
+                    border: none;
+                    background: #FBDEDD;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
                     cursor: pointer;
                     flex-shrink: 0;
                 }
+                .docs-item-delete svg { width: 14px; height: 14px; }
+                /* Pointillé recoloré en accent (au lieu d'encre neutre) + puce "+" ronde :
+                   signale une action plutôt qu'un simple contour. */
                 .docs-add-btn {
                     width: 100%;
                     max-width: 400px;
-                    padding: 14px;
-                    border: 2px dashed var(--text-color-white);
-                    border-radius: 10px;
-                    background: transparent;
-                    color: var(--text-color-white);
+                    padding: 13px;
+                    border: 2px dashed var(--btn-accent-bg);
+                    border-radius: 12px;
+                    background: rgba(46,125,122,.07);
+                    color: var(--btn-accent-bg);
                     font-family: var(--main-font);
                     font-weight: bold;
-                    font-size: 16px;
+                    font-size: 14.5px;
                     cursor: pointer;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 8px;
+                }
+                .docs-add-plus {
+                    width: 18px;
+                    height: 18px;
+                    border-radius: 50%;
+                    background: var(--btn-accent-bg);
+                    color: #FFFBF2;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 13px;
+                    font-weight: 900;
+                    line-height: 1;
+                    flex-shrink: 0;
                 }
 
-                /* Modale d'ajout de document (lien ou fichier) */
+                /* Modale d'ajout de document (lien ou fichier) -- puces au même gabarit
+                   que .map-type-chip (écran Carte) : un seul style de puce dans l'app. */
                 .docs-type-choice {
                     display: flex;
                     gap: 8px;
@@ -2506,19 +2852,32 @@
                 }
                 .docs-type-choice button {
                     flex: 1;
-                    padding: 10px 5px;
-                    border-radius: 8px;
-                    border: 2px solid var(--text-color-white);
-                    background: transparent;
+                    padding: 8px 5px;
+                    border-radius: 13px;
+                    border: none;
+                    background: #FFFBF2;
+                    color: var(--titre-h1-color);
                     font-family: var(--main-font);
                     font-weight: bold;
-                    font-size: 14px;
+                    font-size: 13px;
                     cursor: pointer;
+                    box-shadow: 0 2px 5px rgba(38,70,83,.1);
                 }
                 .docs-type-choice button.docs-type-selected {
                     background: var(--btn-accent-bg);
                     color: var(--text-color-second);
-                    border-color: transparent;
+                    box-shadow: 0 4px 10px rgba(38,70,83,.28);
+                }
+                /* Annuler/Ajouter : mêmes couleurs que les modales carte (ghost encre /
+                   accent plein) -- ces deux boutons n'avaient jusqu'ici aucun style. */
+                #docs-add-cancel {
+                    background: transparent;
+                    border: 2px solid var(--text-color-white) !important;
+                    color: var(--text-color-white);
+                }
+                #docs-add-confirm {
+                    background: var(--btn-accent-bg);
+                    color: var(--text-color-second);
                 }
 
             /* ================================ */
@@ -2548,33 +2907,66 @@
                     padding: 20px;
                     gap: 10px;
                 }
+                /* Ligne d'ajout : catégorie compacte à côté du champ, au lieu de forcer le
+                   select sur sa propre ligne pleine largeur. */
                 .checklist-add-row {
                     width: 100%;
                     max-width: 400px;
                     display: flex;
-                    flex-wrap: wrap; /* Permet au select de passer sur sa propre ligne si besoin */
                     gap: 8px;
                     margin-bottom: 10px;
                 }
+                .checklist-select-wrap { position: relative; flex: 0 0 122px; }
+                .checklist-select-wrap::after {
+                    content: "▾";
+                    position: absolute;
+                    right: 10px;
+                    top: 50%;
+                    transform: translateY(-50%);
+                    color: var(--text-color-white);
+                    font-size: 11px;
+                    pointer-events: none;
+                }
                 .checklist-add-row select {
-                    flex: 1 1 100%; /* Toujours sur sa propre ligne : jamais en concurrence d'espace avec le bouton */
+                    width: 100%;
+                    height: 44px;
+                    padding: 0 24px 0 10px;
+                    border: none;
+                    border-radius: 12px;
+                    background: linear-gradient(180deg, #93C0A9 0%, #ACD6C4 100%);
+                    box-shadow: inset 0 3px 5px rgba(27,55,50,.28), inset 0 -1px 0 rgba(255,255,255,.5);
+                    color: var(--text-color-white);
+                    font-family: var(--main-font);
+                    font-weight: bold;
+                    font-size: 12.5px;
+                    appearance: none;
+                    -webkit-appearance: none;
+                    cursor: pointer;
                 }
                 .checklist-add-row input {
                     flex: 1 1 auto;
                     min-width: 0; /* Sans ça, un input peut forcer un débordement dans un conteneur flex */
-                    padding: 10px;
-                    border: 2px solid var(--text-color-white);
-                    border-radius: 8px;
+                    height: 44px;
+                    padding: 0 12px;
+                    border: none;
+                    border-radius: 12px;
+                    background: linear-gradient(180deg, #93C0A9 0%, #ACD6C4 100%);
+                    box-shadow: inset 0 3px 5px rgba(27,55,50,.28), inset 0 -1px 0 rgba(255,255,255,.5);
+                    color: var(--text-color-white);
                     font-family: var(--main-font);
-                    font-size: 16px;
+                    font-weight: 500;
+                    font-size: 14px;
                     box-sizing: border-box;
                 }
+                .checklist-add-row input::placeholder { color: rgba(38,70,83,.6); font-weight: 500; }
                 .checklist-add-row button {
                     flex: 0 0 auto; /* Taille fixe, jamais compressé ni poussé hors champ */
+                    width: 44px;
+                    height: 44px;
                     border: none;
-                    border-radius: 8px;
-                    padding: 0 18px;
-                    background: var(--btn-accent-bg);
+                    border-radius: 12px;
+                    background: linear-gradient(165deg, #3F958D 0%, #235F5C 100%);
+                    box-shadow: inset 0 1px 0 rgba(255,255,255,.35), 0 3px 0 rgba(19,49,47,.4), 0 6px 12px rgba(38,70,83,.24);
                     color: var(--text-color-second);
                     font-weight: bold;
                     font-size: 20px;
@@ -2587,25 +2979,29 @@
                     flex-direction: column;
                     gap: 8px;
                 }
+                /* Carte crème (même famille que .docs-item) au lieu de l'encart translucide
+                   à bordure 2px d'origine. */
                 .checklist-item {
                     display: flex;
                     align-items: center;
                     gap: 10px;
-                    padding: 10px 14px;
-                    background: rgba(255,255,255,0.5);
-                    border: 2px solid var(--text-color-white);
-                    border-radius: 10px;
+                    padding: 9px 12px;
+                    background: #FFFBF2;
+                    border-radius: 12px;
+                    box-shadow: 0 5px 12px rgba(38,70,83,.14);
                 }
                 .checklist-item input[type="checkbox"] {
-                    width: 22px;
-                    height: 22px;
+                    width: 19px;
+                    height: 19px;
+                    accent-color: var(--btn-accent-bg); /* Teinte la case native, sans composant custom à maintenir */
                     flex-shrink: 0;
                     cursor: pointer;
                 }
                 .checklist-item label {
                     flex: 1;
                     font-family: var(--main-font);
-                    font-size: 16px;
+                    font-size: 14px;
+                    font-weight: 500;
                     color: var(--titre-h1-color);
                     word-break: break-word;
                 }
@@ -2613,34 +3009,32 @@
                     text-decoration: line-through;
                     opacity: 0.55;
                 }
+                /* Icône ronde rouge pastel : même recette que .docs-item-delete. */
                 .checklist-item-delete {
+                    width: 24px;
+                    height: 24px;
+                    border-radius: 50%;
                     border: none;
-                    background: #e5484d;
-                    color: white;
-                    border-radius: 6px;
-                    padding: 5px 9px;
-                    font-weight: bold;
+                    background: #FBDEDD;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
                     cursor: pointer;
                     flex-shrink: 0;
                 }
+                .checklist-item-delete svg { width: 12px; height: 12px; }
+                /* Eyebrow teal en majuscules, même recette que .map-block-label/.stat-label,
+                   au lieu d'un titre gras souligné. */
                 .checklist-category-header {
                     width: 100%;
                     max-width: 400px;
                     font-family: var(--main-font);
                     font-weight: bold;
-                    font-size: 15px;
-                    color: var(--titre-h1-color);
+                    font-size: 10.5px;
+                    letter-spacing: .06em;
+                    text-transform: uppercase;
+                    color: var(--btn-accent-bg);
                     margin-top: 8px;
-                    padding-bottom: 4px;
-                    border-bottom: 2px solid var(--text-color-white);
-                }
-                .checklist-add-row select {
-                    padding: 10px 6px;
-                    border: 2px solid var(--text-color-white);
-                    border-radius: 8px;
-                    font-family: var(--main-font);
-                    font-size: 14px;
-                    background: white;
                 }
 
 
@@ -2944,11 +3338,14 @@
                  lui-même derrière cet autre écran. -->
             <div id="time-picker-modal" class="modal-overlay">
                 <div class="modal-content-add time-picker-content">
-                    <h3>Heure d'arrivée</h3>
+                    <div class="modal-icon-head">
+                        <span class="modal-icon-badge"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8" stroke="#FFFBF2" stroke-width="2"/><path d="M12 8v4l3 2" stroke="#FFFBF2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+                        <h3>Heure d'arrivée</h3>
+                    </div>
                     <div class="time-picker-selects">
-                        <select id="time-picker-hour" aria-label="Heure"></select>
+                        <div class="time-picker-cap"><select id="time-picker-hour" aria-label="Heure"></select></div>
                         <span class="time-picker-sep">:</span>
-                        <select id="time-picker-minute" aria-label="Minute"></select>
+                        <div class="time-picker-cap"><select id="time-picker-minute" aria-label="Minute"></select></div>
                     </div>
                     <div class="nav-buttons">
                         <button type="button" id="time-picker-cancel">Annuler</button>
@@ -2973,28 +3370,66 @@
 
                 <!-- Légende des couleurs par mode de transport -->
                 <div class="map-legend">
-                    <div><span class="map-legend-dot" style="background:var(--map-color-car)"></span>Voiture</div>
-                    <div><span class="map-legend-dot" style="background:var(--map-color-bike)"></span>Vélo</div>
-                    <div><span class="map-legend-dot" style="background:var(--map-color-hiking)"></span>Randonnée</div>
+                    <div class="map-legend-title">Modes</div>
+                    <div><span class="map-legend-dot" style="background:var(--map-color-car)"></span><span class="map-legend-label">Voiture</span></div>
+                    <div><span class="map-legend-dot" style="background:var(--map-color-bike)"></span><span class="map-legend-label">Vélo</span></div>
+                    <div><span class="map-legend-dot" style="background:var(--map-color-hiking)"></span><span class="map-legend-label">Randonnée</span></div>
                 </div>
 
-                <!-- Barre d'outils flottante -->
+                <!-- Barre d'outils flottante (dock d'icônes rondes, même famille que les
+                     tuiles Gestion/Synthèse/Finance de l'écran voyage) -->
                 <div class="map-toolbar">
-                    <button type="button" id="map-btn-set-zone" style="display:none;">📌 Valider cette zone</button>
-                    <button type="button" id="map-btn-add-poi">📍 Point</button>
-                    <button type="button" id="map-btn-add-route">🛣️ Itinéraire</button>
-                    <button type="button" id="map-btn-filter">🔎 Filtrer</button>
-                    <button type="button" id="map-btn-validate-route" style="display:none;">✅ Valider le tracé</button>
-                    <button type="button" id="map-btn-cancel-route" style="display:none;">✖️ Annuler</button>
+                    <button type="button" id="map-btn-set-zone" style="display:none;">
+                        <span class="map-toolbar-badge"><svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#FFFBF2" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+                        <span class="map-toolbar-label">Valider la zone</span>
+                    </button>
+                    <button type="button" id="map-btn-add-poi">
+                        <span class="map-toolbar-badge"><svg viewBox="0 0 24 24" fill="none"><path d="M12 21s-7-6.2-7-11a7 7 0 0114 0c0 4.8-7 11-7 11z" stroke="#FFFBF2" stroke-width="2"/><circle cx="12" cy="10" r="2.4" stroke="#FFFBF2" stroke-width="2"/></svg></span>
+                        <span class="map-toolbar-label">Point</span>
+                    </button>
+                    <button type="button" id="map-btn-add-route">
+                        <span class="map-toolbar-badge"><svg viewBox="0 0 24 24" fill="none"><path d="M4 19c4-1 3-7 8-7s3 6 8 7" stroke="#FFFBF2" stroke-width="2" stroke-linecap="round"/><circle cx="4" cy="19" r="1.6" fill="#FFFBF2"/><circle cx="20" cy="19" r="1.6" fill="#FFFBF2"/></svg></span>
+                        <span class="map-toolbar-label">Itinéraire</span>
+                    </button>
+                    <button type="button" id="map-btn-filter" class="map-toolbar-warn">
+                        <span class="map-toolbar-badge"><svg viewBox="0 0 24 24" fill="none"><path d="M4 5h16l-6 7v6l-4 2v-8L4 5z" stroke="#FFFBF2" stroke-width="2" stroke-linejoin="round"/></svg></span>
+                        <span class="map-toolbar-label">Filtrer</span>
+                    </button>
+                    <button type="button" id="map-btn-validate-route" style="display:none;">
+                        <span class="map-toolbar-badge"><svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#FFFBF2" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+                        <span class="map-toolbar-label">Valider</span>
+                    </button>
+                    <button type="button" id="map-btn-cancel-route" style="display:none;" class="map-toolbar-warn">
+                        <span class="map-toolbar-badge"><svg viewBox="0 0 24 24" fill="none"><path d="M6 6l12 12M18 6L6 18" stroke="#FFFBF2" stroke-width="2.4" stroke-linecap="round"/></svg></span>
+                        <span class="map-toolbar-label">Annuler</span>
+                    </button>
                 </div>
             </div>
 
             <!-- Modale : nouveau point d'intérêt OU édition d'un point existant -->
             <div id="map-poi-modal" class="modal-overlay">
                 <div class="modal-content-add map-form-content">
-                    <h3 id="map-poi-modal-title">Nouveau point d'intérêt</h3>
-                    <select id="map-poi-day"></select>
-                    <select id="map-poi-type">
+                    <div class="modal-icon-head">
+                        <span class="modal-icon-badge"><svg viewBox="0 0 24 24" fill="none"><path d="M12 21s-7-6.2-7-11a7 7 0 0114 0c0 4.8-7 11-7 11z" stroke="#FFFBF2" stroke-width="2"/><circle cx="12" cy="10" r="2.4" stroke="#FFFBF2" stroke-width="2"/></svg></span>
+                        <h3 id="map-poi-modal-title">Nouveau point d'intérêt</h3>
+                    </div>
+                    <p class="map-block-label">Jour</p>
+                    <div class="map-select-wrap"><select id="map-poi-day"></select></div>
+                    <p class="map-block-label">Type</p>
+                    <!-- Puces à icônes : remplacent visuellement le select ci-dessous (conservé
+                         masqué pour ne rien changer à la lecture/écriture faite en JS via
+                         .value -- voir syncPoiTypeChips()). -->
+                    <div class="map-type-chips" id="map-poi-type-chips">
+                        <button type="button" class="map-type-chip" data-type="restaurant">🍽️ Restaurant</button>
+                        <button type="button" class="map-type-chip" data-type="hebergement">🏨 Hébergement</button>
+                        <button type="button" class="map-type-chip" data-type="visite">👁️ Visite</button>
+                        <button type="button" class="map-type-chip" data-type="nature">🌳 Nature</button>
+                        <button type="button" class="map-type-chip" data-type="plage">🏖️ Plage</button>
+                        <button type="button" class="map-type-chip" data-type="activite">🎯 Activité</button>
+                        <button type="button" class="map-type-chip" data-type="transport">🚉 Transport</button>
+                        <button type="button" class="map-type-chip map-type-chip-active" data-type="autre">📍 Autre</button>
+                    </div>
+                    <select id="map-poi-type" style="display:none;">
                         <option value="restaurant">🍽️ Restaurant</option>
                         <option value="hebergement">🏨 Hébergement</option>
                         <option value="visite">👁️ Visite</option>
@@ -3004,8 +3439,10 @@
                         <option value="transport">🚉 Transport</option>
                         <option value="autre" selected>📍 Autre</option>
                     </select>
+                    <p class="map-block-label">Nom du lieu</p>
                     <input type="text" id="map-poi-label" placeholder="Nom du lieu" maxlength="40">
-                    <textarea id="map-poi-comment" placeholder="Commentaire (optionnel)" maxlength="300" rows="3" style="width:100%;padding:10px;margin-bottom:12px;border:2px solid var(--text-color-white);border-radius:8px;font-family:var(--main-font);font-size:14px;box-sizing:border-box;resize:vertical;"></textarea>
+                    <p class="map-block-label">Commentaire</p>
+                    <textarea id="map-poi-comment" placeholder="Optionnel..." maxlength="300" rows="3"></textarea>
                     <div class="nav-buttons">
                         <button type="button" id="map-poi-delete" style="display:none;background:#e5484d;color:white;">Supprimer</button>
                         <button type="button" id="map-poi-cancel">Annuler</button>
@@ -3017,16 +3454,24 @@
             <!-- Petite modale : mode + jour, avant de tracer un itinéraire -->
             <div id="map-route-modal" class="modal-overlay">
                 <div class="modal-content-add map-form-content">
-                    <h3>Nouvel itinéraire</h3>
-                    <div class="map-mode-choice">
-                        <button type="button" data-mode="car">🚗 Voiture</button>
-                        <button type="button" data-mode="bike">🚲 Vélo</button>
-                        <button type="button" data-mode="hiking">🥾 Rando</button>
+                    <div class="modal-icon-head">
+                        <span class="modal-icon-badge"><svg viewBox="0 0 24 24" fill="none"><path d="M4 19c4-1 3-7 8-7s3 6 8 7" stroke="#FFFBF2" stroke-width="2" stroke-linecap="round"/><circle cx="4" cy="19" r="1.6" fill="#FFFBF2"/><circle cx="20" cy="19" r="1.6" fill="#FFFBF2"/></svg></span>
+                        <h3>Nouvel itinéraire</h3>
                     </div>
-                    <select id="map-route-day"></select>
+                    <p class="map-block-label">Mode de transport</p>
+                    <div class="map-mode-choice">
+                        <button type="button" data-mode="car"><span class="map-mode-badge">🚗</span><span class="map-mode-name">Voiture</span></button>
+                        <button type="button" data-mode="bike"><span class="map-mode-badge">🚲</span><span class="map-mode-name">Vélo</span></button>
+                        <button type="button" data-mode="hiking"><span class="map-mode-badge">🥾</span><span class="map-mode-name">Rando</span></button>
+                    </div>
+                    <p class="map-block-label">Jour</p>
+                    <div class="map-select-wrap"><select id="map-route-day"></select></div>
                     <div class="nav-buttons">
                         <button type="button" id="map-route-cancel">Annuler</button>
-                        <button type="button" id="map-route-start">Commencer le tracé</button>
+                        <button type="button" id="map-route-start">
+                            <svg viewBox="0 0 24 24" fill="none"><path d="M4 19c4-1 3-7 8-7s3 6 8 7" stroke="#FFFBF2" stroke-width="2" stroke-linecap="round"/></svg>
+                            Commencer le tracé
+                        </button>
                     </div>
                 </div>
             </div>
@@ -3034,15 +3479,20 @@
             <!-- Modale de filtre : jours + types de POI -->
             <div id="map-filter-modal" class="modal-overlay">
                 <div class="modal-content-add map-form-content">
-                    <h3>Filtrer la carte</h3>
-                    <p style="margin:0 0 8px 0;font-weight:bold;font-size:14px;">Jours</p>
-                    <div id="map-filter-days" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:15px;"></div>
-                    <p style="margin:0 0 8px 0;font-weight:bold;font-size:14px;">Types de point d'intérêt</p>
-                    <div id="map-filter-types" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:15px;"></div>
+                    <div class="modal-icon-head">
+                        <span class="modal-icon-badge"><svg viewBox="0 0 24 24" fill="none"><path d="M4 5h16l-6 7v6l-4 2v-8L4 5z" stroke="#FFFBF2" stroke-width="2" stroke-linejoin="round"/></svg></span>
+                        <h3>Filtrer la carte</h3>
+                    </div>
+                    <p class="map-block-label">Jours</p>
+                    <div id="map-filter-days" class="map-type-chips"></div>
+                    <p class="map-block-label">Types de point d'intérêt</p>
+                    <div id="map-filter-types" class="map-type-chips"></div>
                     <div class="nav-buttons">
-                        <button type="button" id="map-filter-deselect-all">Tout désélectionner</button>
-                        <button type="button" id="map-filter-reset">Tout afficher</button>
                         <button type="button" id="map-filter-apply">Appliquer</button>
+                        <div class="map-filter-secondary-row">
+                            <button type="button" id="map-filter-deselect-all">Tout désélectionner</button>
+                            <button type="button" id="map-filter-reset">Tout afficher</button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -3058,18 +3508,28 @@
                 </header>
 
                 <div class="docs-content">
-                    <button type="button" class="docs-checklist-btn" id="docs-open-checklist">✅ Checklist</button>
+                    <button type="button" class="docs-checklist-btn" id="docs-open-checklist">
+                        <span class="docs-checklist-badge"><svg viewBox="0 0 24 24" fill="none"><rect x="4" y="4" width="16" height="16" rx="4" stroke="#2E7D7A" stroke-width="2"/><path d="M8 12l2.5 2.5L16 9" stroke="#2E7D7A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+                        <span class="docs-checklist-text">
+                            <span class="docs-checklist-title">Checklist</span>
+                            <span class="docs-checklist-sub">Bagages, papiers, santé...</span>
+                        </span>
+                        <span class="docs-checklist-chevron">›</span>
+                    </button>
 
                     <div class="docs-list" id="docs-list"></div>
 
-                    <button type="button" class="docs-add-btn" id="docs-add-btn">+ Ajouter un document</button>
+                    <button type="button" class="docs-add-btn" id="docs-add-btn"><span class="docs-add-plus">+</span> Ajouter un document</button>
                 </div>
             </div>
 
             <!-- Modale d'ajout de document (lien ou fichier) -->
             <div id="docs-add-modal" class="modal-overlay">
                 <div class="modal-content-add map-form-content">
-                    <h3>Nouveau document</h3>
+                    <div class="modal-icon-head">
+                        <span class="modal-icon-badge"><svg viewBox="0 0 24 24" fill="none"><path d="M7 3h7l4 4v14H7V3z" stroke="#FFFBF2" stroke-width="2" stroke-linejoin="round"/><path d="M14 3v4h4" stroke="#FFFBF2" stroke-width="2" stroke-linejoin="round"/></svg></span>
+                        <h3>Nouveau document</h3>
+                    </div>
                     <div class="docs-type-choice">
                         <button type="button" data-doctype="link" class="docs-type-selected">🔗 Lien</button>
                         <button type="button" data-doctype="file">📄 Fichier</button>
@@ -3095,14 +3555,16 @@
 
                 <div class="checklist-content">
                     <div class="checklist-add-row">
-                        <select id="checklist-add-category">
-                            <option value="Bagages|🎒">🎒 Bagages</option>
-                            <option value="Papiers|📄">📄 Papiers</option>
-                            <option value="Santé|💊">💊 Santé</option>
-                            <option value="Électronique|🔌">🔌 Électronique</option>
-                            <option value="Toilette|🧴">🧴 Toilette</option>
-                            <option value="Général|📋" selected>📋 Général</option>
-                        </select>
+                        <div class="checklist-select-wrap">
+                            <select id="checklist-add-category">
+                                <option value="Bagages|🎒">🎒 Bagages</option>
+                                <option value="Papiers|📄">📄 Papiers</option>
+                                <option value="Santé|💊">💊 Santé</option>
+                                <option value="Électronique|🔌">🔌 Électronique</option>
+                                <option value="Toilette|🧴">🧴 Toilette</option>
+                                <option value="Général|📋" selected>📋 Général</option>
+                            </select>
+                        </div>
                         <input type="text" id="checklist-add-input" placeholder="Ajouter un élément..." maxlength="60">
                         <button type="button" id="checklist-add-btn">+</button>
                     </div>
@@ -5418,6 +5880,17 @@
                     }
                 }
 
+                // Aligne les puces à icônes du type de POI sur la valeur courante du
+                // <select id="map-poi-type"> (resté dans le DOM, masqué, comme seule
+                // source de vérité lue/écrite par le reste du script) -- à appeler après
+                // chaque changement programmatique de sa .value.
+                function syncPoiTypeChips() {
+                    const val = document.getElementById('map-poi-type').value;
+                    document.querySelectorAll('.map-type-chip').forEach(chip => {
+                        chip.classList.toggle('map-type-chip-active', chip.dataset.type === val);
+                    });
+                }
+
                 // --- Gestion des clics sur la carte, selon le mode actif ---
                 function handleMapClick(e) {
                     if (mapClickMode === 'placing-poi') {
@@ -5429,6 +5902,7 @@
                         document.getElementById('map-poi-label').value = '';
                         document.getElementById('map-poi-comment').value = '';
                         document.getElementById('map-poi-type').value = 'autre';
+                        syncPoiTypeChips();
                         document.getElementById('map-poi-delete').style.display = 'none';
                         document.getElementById('map-poi-confirm').textContent = 'Ajouter';
                         document.getElementById('map-poi-modal').classList.add('active');
@@ -5451,6 +5925,7 @@
                     populateDaySelect(document.getElementById('map-poi-day'), trip?.duration || 1);
                     document.getElementById('map-poi-day').value = poi.dayId;
                     document.getElementById('map-poi-type').value = poi.type;
+                    syncPoiTypeChips();
                     document.getElementById('map-poi-label').value = poi.label || '';
                     document.getElementById('map-poi-comment').value = poi.comment || '';
                     document.getElementById('map-poi-modal-title').textContent = 'Modifier le point';
@@ -5470,6 +5945,14 @@
                     document.getElementById('map-btn-add-poi')?.addEventListener('click', () => {
                         mapClickMode = 'placing-poi';
                         setMapInstructions("Touche la carte à l'endroit du point d'intérêt.");
+                    });
+                    // Puces de type : chacune pousse sa valeur dans le <select> masqué
+                    // (seule source de vérité lue par map-poi-confirm) puis se marque active.
+                    document.querySelectorAll('.map-type-chip').forEach((chip) => {
+                        chip.addEventListener('click', () => {
+                            document.getElementById('map-poi-type').value = chip.dataset.type;
+                            syncPoiTypeChips();
+                        });
                     });
                     document.getElementById('map-poi-cancel')?.addEventListener('click', () => {
                         document.getElementById('map-poi-modal').classList.remove('active');
@@ -5666,6 +6149,10 @@
                     }
                 }
 
+                // Icône poubelle partagée par les boutons "supprimer" (documents +
+                // checklist) : icône ronde rouge pastel au lieu du pavé "Suppr."/"✖" plein.
+                const TRASH_ICON_SVG = '<svg viewBox="0 0 24 24" fill="none"><path d="M5 7h14M9 7V5a1 1 0 011-1h4a1 1 0 011 1v2m-8 0l1 12a1 1 0 001 1h6a1 1 0 001-1l1-12" stroke="#e5484d" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
                 function renderDocument(doc) {
                     const listEl = document.getElementById('docs-list');
                     const item = document.createElement('div');
@@ -5683,15 +6170,23 @@
                     const icon = document.createElement('span');
                     icon.className = 'docs-item-icon';
                     icon.textContent = doc.type === 'link' ? '🔗' : '📄';
+                    const text = document.createElement('span');
+                    text.className = 'docs-item-text';
                     const label = document.createElement('span');
                     label.className = 'docs-item-label';
                     label.textContent = doc.label;
+                    const sub = document.createElement('span');
+                    sub.className = 'docs-item-sub';
+                    sub.textContent = doc.type === 'link' ? 'Lien' : 'Fichier';
+                    text.appendChild(label);
+                    text.appendChild(sub);
                     link.appendChild(icon);
-                    link.appendChild(label);
+                    link.appendChild(text);
 
                     const delBtn = document.createElement('button');
                     delBtn.className = 'docs-item-delete';
-                    delBtn.textContent = 'Suppr.';
+                    delBtn.innerHTML = TRASH_ICON_SVG;
+                    delBtn.setAttribute('aria-label', 'Supprimer');
                     delBtn.addEventListener('click', async () => {
                         try {
                             await apiRequest('DELETE', `/trips/${docsCurrentTripId}/documents/${doc.id}`);
@@ -5767,7 +6262,8 @@
 
                     const delBtn = document.createElement('button');
                     delBtn.className = 'checklist-item-delete';
-                    delBtn.textContent = '✖';
+                    delBtn.innerHTML = TRASH_ICON_SVG;
+                    delBtn.setAttribute('aria-label', 'Supprimer');
                     delBtn.addEventListener('click', async () => {
                         try {
                             await apiRequest('DELETE', `/trips/${docsCurrentTripId}/checklist/${item.id}`);
