@@ -495,36 +495,81 @@
                 }
 
                 /* --- Menu Contextuel d'Options --- */
+                /* Harmonisé avec le nouveau design du dashboard : carte crème (même
+                   #FFFBF2 que .btn-past-trips/.shelf-card), coins arrondis 20px et
+                   ombre chaude rgba(38,70,83,..) au lieu du blanc/gris générique
+                   d'origine. Boutons "pressable" -- même recette dégradé + ombre
+                   étagée que .btn-connexion/.btn-create -- variante corail pour
+                   Supprimer, contour pour Annuler (même recette que #time-picker-cancel). */
                     .options-menu {
                         display: none; /* Caché par défaut */
                         position: fixed;
                         top: 50%;
                         left: 50%;
                         transform: translate(-50%, -50%); /* Centré parfaitement sur l'écran */
-                        background-color: white;
-                        border-radius: 10px;
-                        box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+                        background-color: #FFFBF2;
+                        border-radius: 20px;
+                        box-shadow: 0 16px 32px rgba(38,70,83,.28);
                         z-index: 161; /* Au-dessus de dashboard-screen */
                         flex-direction: column;
-                        padding: 20px;
-                        min-width: 200px;
+                        padding: 22px;
+                        min-width: 230px;
+                        max-width: 280px;
                     }
                     .options-menu.active {
                         display: flex; /* Affiché quand actif */
                     }
+                    .options-menu-title {
+                        margin: 0 0 14px;
+                        font-family: var(--main-font);
+                        font-size: 15px;
+                        font-weight: bold;
+                        color: var(--titre-h1-color);
+                        text-align: center;
+                    }
                     .options-menu button {
-                        padding: 15px;
+                        padding: 13px;
                         margin: 5px 0;
                         border: none;
-                        background: var(--btn-bg-color);
-                        border-radius: 5px;
-                        font-size: 16px;
+                        border-radius: 14px;
+                        background: linear-gradient(165deg, #3F958D 0%, #235F5C 100%);
+                        color: #FFFBF2;
+                        font-size: 15px;
+                        font-weight: bold;
                         cursor: pointer;
                         font-family: var(--main-font); /* Applique la variable de police définie */
+                        box-shadow:
+                            inset 0 1px 0 rgba(255,255,255,.35),
+                            0 3px 0 rgba(19,49,47,.4),
+                            0 6px 12px rgba(38,70,83,.22);
+                        transition: transform .08s ease, box-shadow .08s ease;
+                        -webkit-tap-highlight-color: transparent;
+                    }
+                    .options-menu button:active {
+                        transform: translateY(2px);
+                        box-shadow:
+                            inset 0 1px 0 rgba(255,255,255,.25),
+                            0 1px 0 rgba(19,49,47,.4),
+                            0 3px 8px rgba(38,70,83,.18);
                     }
                     .options-menu button.btn-delete {
-                        background-color: #ffdddd;
-                        color: #d8000c;
+                        background: linear-gradient(165deg, #E4785A 0%, #B8462E 100%);
+                        box-shadow:
+                            inset 0 1px 0 rgba(255,255,255,.3),
+                            0 3px 0 rgba(107,38,22,.4),
+                            0 6px 12px rgba(107,38,22,.22);
+                    }
+                    /* Bouton "Annuler" (dernier de la liste) : ghost/contour, pas de fond plein */
+                    .options-menu button:last-child {
+                        background: transparent;
+                        border: 2px solid var(--text-color-white);
+                        color: var(--text-color-white);
+                        box-shadow: none;
+                        margin-top: 4px;
+                    }
+                    .options-menu button:last-child:active {
+                        transform: translateY(1px);
+                        box-shadow: none;
                     }
 
                 /* Overlay sombre quand le menu est ouvert */
@@ -532,7 +577,7 @@
                     display: none; /* Caché par défaut */
                     position: fixed; /* Fixe sur l'écran */
                     top: 0; left: 0; width: 100%; height: 100%; /* Plein écran */
-                    background-color: rgba(0,0,0,0.5); /* Fond semi-transparent */
+                    background-color: rgba(19,49,47,.55); /* Fond semi-transparent teinté (cohérent avec les ombres chaudes de l'app, plutôt qu'un noir générique) */
                     z-index: 160; /* Au-dessus de tout */
                     justify-content: center; /* Centre horizontal */
                     align-items: center; /* Centre vertical */
@@ -813,6 +858,16 @@
                     box-shadow: 0 10px 25px rgba(0,0,0,0.2); /* Ombre portée */
                 }
 
+                /* Cartes "Ajouter/Modifier un voyage" et "Voyages réalisés" : rayon 20px et
+                   ombre chaude rgba(38,70,83,..), même famille que .dashboard-hero/.trip-cover,
+                   au lieu du rayon/ombre noire génériques ci-dessus (partagés avec les autres
+                   modales -- heure, carte, documents -- non concernées par cette harmonisation). */
+                #modal-add-trip .modal-content-add,
+                #modal-past-trips .modal-content-add {
+                    border-radius: 20px;
+                    box-shadow: 0 16px 32px rgba(38,70,83,.28);
+                }
+
                 /* --- Sélecteur d'heure personnalisé (remplace <input type="time">) --- */
                 /* z-index le plus haut du fichier (500) + marge : sans ça, la modale
                    héritait des 200 de .modal-overlay, en dessous des écrans
@@ -918,37 +973,28 @@
                     color: var(--text-color-white);
                 }
 
-                /* Header de la modale d'ajout */
+                /* Header des modales "Ajouter/Modifier un voyage" et "Voyages réalisés" */
+                /* Titre aplati (var(--titre-h1-color), sans text-shadow) + séparation
+                   2px, même recette que .dashboard-header/.trip-home-header : remplace
+                   l'ancien titre "embossé" (text-shadow) qui détonnait avec le reste du
+                   dashboard. Le bouton retour reprend la lanière en cuir + rivet -- voir
+                   le bloc mutualisé plus bas (section 04.a, désormais
+                   ".modal-add-header .btn-back" y est ajouté). */
                     .modal-add-header {
                         display: flex; /* Flexbox horizontal */
                         align-items: center; /* Centre vertical */
                         justify-content: center; /* Centre le titre */
                         position: relative; /* Pour positionner le bouton back en absolute */
-                        padding: 15px; /* Padding interne */
-                        border-bottom: 1px solid rgba(0,0,0,0.05); /* Séparation */
+                        padding: 15px 20px; /* Padding interne */
+                        border-bottom: 2px solid rgba(0,0,0,0.1); /* Séparation */
                     }
 
                     .modal-add-title {
                         font-family: var(--main-font); /* Applique la variable de police définie */
-                        font-size: 24px; /* Taille */
-                        color: var(--text-color-white); /* Couleur */
+                        font-size: 22px; /* Taille */
+                        color: var(--titre-h1-color); /* Couleur bleue de la marque, comme .dashboard-title */
                         margin: 0; /* Pas de marge */
-                        text-shadow: 2px 1px 2px var(--text-color-second); /* Ombre texte */
-                    }
-
-                /* Bouton retour dans la modale */
-                    .modal-add-header .btn-back {
-                        position: absolute; /* Sort du flux pour ne pas gêner le centrage */
-                        left: 15px; /* Collé à gauche */
-                        top: 50%; /* Centrage vertical */
-                        transform: translateY(-50%); /* Ajustement précis */
-                        background: none; /* Pas de fond */
-                        border: none; /* Pas de bordure */
-                        /*font-size: 36px; /* Taille flèche */
-                        color: var(--text-color-white); /* Couleur */
-                        cursor: pointer; /* Main */
-                        margin: 0; /* Pas de marge */
-                        box-shadow: 3px 3px 6px var(--text-color-white); /* Ombre portée */
+                        font-weight: bold;
                     }
 
                 /* Formulaire dans la modale */
@@ -961,29 +1007,43 @@
                     }
 
                 /* Champs du formulaire */
-                    .form-add-trip input, 
+                /* Harmonisé avec .field (mallette login/signup) : même dégradé menthe
+                   "en creux" (inset) plutôt que le champ blanc à bordure grise d'origine,
+                   qui détonnait avec le reste de l'app. */
+                    .form-add-trip input,
                     .form-add-trip select {
                         width: 100%; /* Pleine largeur du conteneur */
-                        max-width: 250px; /* Largeur max pour ne pas être trop larges */
-                        padding: 10px; /* Padding interne */
-                        border: 1px solid #ccc; /* Bordure */
-                        border-radius: 8px; /* Arrondi */
+                        max-width: 260px; /* Largeur max pour ne pas être trop larges */
+                        height: 48px; /* Même hauteur que .field */
+                        padding: 0 16px; /* Padding interne horizontal seulement (hauteur fixe) */
+                        border: none; /* Bordure supprimée : le relief vient du box-shadow inset */
+                        border-radius: 14px; /* Arrondi, comme .field */
+                        background: linear-gradient(180deg, #93C0A9 0%, #ACD6C4 100%); /* Dégradé menthe */
+                        box-shadow:
+                            inset 0 3px 5px rgba(27,55,50,.28),
+                            inset 0 -1px 0 rgba(255,255,255,.5);
                         font-family: var(--main-font); /* Applique la variable de police définie */
-                        font-size: 16px; /* Taille police */
+                        font-size: 15px; /* Taille police */
+                        color: var(--text-color-white); /* Texte vert foncé, lisible sur le fond menthe */
                         text-align: center; /* Texte centré */
                         box-sizing: border-box; /* Inclut padding dans la largeur */
                         font-weight: bold; /* Police en gras */
                     }
                     /* Effet de focus (quand on clique dans le champ) */
-                        .form-add-trip input:focus, 
+                        .form-add-trip input:focus,
                         .form-add-trip select:focus {
                             outline: none; /* Supprime le contour bleu par défaut du navigateur */
-                            border: 2px solid var(--text-color-white); /* Bordure bleu clair de 2px (votre couleur marque) */
-                            box-shadow: 0 0 5px var(--text-color-second); /* Légère lueur bleue */
-                            transition: border-color 0.3s ease; /* Transition fluide */
+                            box-shadow:
+                                inset 0 3px 5px rgba(27,55,50,.28),
+                                inset 0 -1px 0 rgba(255,255,255,.5),
+                                0 0 0 3px rgba(46,125,122,.35); /* Anneau accent, même recette que .field:focus */
+                            transform: scale(1.02);
+                            transition: box-shadow 0.2s ease, transform 0.2s ease;
                         }
 
                 /* Zone d'upload d'image */
+                /* Reprend l'habillage "pointillé accent + fond crème" de .btn-new-trip-tile
+                   (tuile "Nouveau voyage" du dashboard) plutôt que le gris générique d'origine. */
                     .image-upload-label {
                         cursor: pointer; /* Main */
                         display: flex; /* Flexbox */
@@ -992,11 +1052,11 @@
                     }
 
                     .image-preview-box {
-                        width: 190px; /* Largeur fixe */
-                        height: 73px; /* Hauteur fixe */
-                        background-color: #eee; /* Fond gris */
-                        border: 2px dashed #aaa; /* Bordure pointillée */
-                        border-radius: 8px; /* Arrondi */
+                        width: 210px; /* Largeur fixe */
+                        height: 90px; /* Hauteur fixe */
+                        background-color: #FBE7C4; /* Même crème que .btn-new-trip-tile */
+                        border: 2px dashed var(--btn-accent-bg); /* Pointillé accent, comme .btn-new-trip-tile */
+                        border-radius: 14px; /* Arrondi */
                         display: flex; /* Flexbox */
                         justify-content: center; /* Centre */
                         align-items: center; /* Centre */
@@ -1005,30 +1065,46 @@
                     }
 
                     #image-placeholder {
-                        font-size: 16px; /* Taille police */
-                        color: #666; /* Gris */
+                        font-size: 14px; /* Taille police */
+                        font-weight: bold;
+                        color: var(--btn-accent-bg); /* Accent sarcelle plutôt que gris */
                         text-align: center; /* Centré */
+                        padding: 0 10px;
                     }
 
-                /* Bouton Créer */
+                /* Bouton Créer / Modifier */
+                /* Reprend la recette "pressable" de .btn-connexion/.btn-create (mallette
+                   login/signup) -- dégradé sarcelle + ombre étagée -- pour une cohérence
+                   totale des CTA principaux de l'app (remplace le fond plat + text-shadow
+                   noir d'origine). */
                     .btn-create-trip {
                         margin-top: 10px; /* Espace au-dessus */
-                        padding: 12px 30px; /* Padding */
-                        background-color: var(--btn-accent-bg); /* Applique la variable de fond définie */
-                        color: var(--text-color-second); /* Applique la variable de couleur de police définie */
-                        text-shadow: 1px 1px 0px black;
+                        width: 100%;
+                        max-width: 260px;
+                        height: 50px;
                         border: none; /* Pas de bordure */
-                        border-radius: 25px; /* Arrondi */
+                        border-radius: 14px; /* Arrondi */
+                        background: linear-gradient(165deg, #3F958D 0%, #235F5C 100%);
+                        color: #FFFBF2;
                         font-size: 16px; /* Taille */
                         font-weight: bold; /* Gras */
+                        letter-spacing: .02em;
                         cursor: pointer; /* Main */
                         font-family: var(--main-font); /* Applique la variable de police définie */
-                        box-shadow: 0 4px 6px rgba(0,0,0,0.1); /* Ombre */
-                        transition: transform 0.2s; /* Animation */
+                        box-shadow:
+                            inset 0 1px 0 rgba(255,255,255,.35),
+                            0 3px 0 rgba(19,49,47,.4),
+                            0 10px 18px rgba(38,70,83,.28);
+                        transition: transform .08s ease, box-shadow .08s ease;
+                        -webkit-tap-highlight-color: transparent;
                     }
 
                     .btn-create-trip:active {
-                        transform: scale(0.95); /* Réduit au clic */
+                        transform: translateY(2px); /* Effet "pressé", comme .btn-connexion:active */
+                        box-shadow:
+                            inset 0 1px 0 rgba(255,255,255,.25),
+                            0 1px 0 rgba(19,49,47,.4),
+                            0 4px 10px rgba(38,70,83,.22);
                     }
 
         /* ================================ */
@@ -1080,16 +1156,19 @@
                    (lanières de la mallette login/signup) et .cover-back (bouton retour
                    déjà en place sur trip-home-screen) : une lanière cousue en haut du
                    header, qui pend avec des coins arrondis en bas et un rivet doré.
-                   Un seul bloc mutualisé sur les 4 headers qui utilisaient encore
+                   Un seul bloc mutualisé sur les headers qui utilisaient encore
                    l'ancien bouton rond -- .day-detail-header est partagé par
                    day-detail-screen, finance-home-screen et map-screen ; .trip-home-header
-                   est partagé par recap-trip-screen, docs-screen et checklist-screen.
+                   est partagé par recap-trip-screen, docs-screen et checklist-screen ;
+                   .modal-add-header est partagé par les modales "Ajouter/Modifier un
+                   voyage" et "Voyages réalisés" (harmonisation avec le dashboard).
                    trip-home-screen n'a pas besoin d'être ajouté ici : son bouton retour
                    (.cover-back, voir plus bas) a déjà ce design. */
                 .dashboard-header .btn-back,
                 .day-detail-header .btn-back,
                 .day-home-header .btn-back,
-                .trip-home-header .btn-back {
+                .trip-home-header .btn-back,
+                .modal-add-header .btn-back {
                     position: absolute; /* Positionne le bouton absolument par rapport au header */
                     top: 0; /* Cousue au tout bord supérieur de l'écran (comme .cover-back), plus centrée verticalement */
                     left: 16px; /* Colle la lanière à 16px du bord gauche */
@@ -1108,13 +1187,15 @@
                 .dashboard-header .btn-back::before,
                 .day-detail-header .btn-back::before,
                 .day-home-header .btn-back::before,
-                .trip-home-header .btn-back::before {
+                .trip-home-header .btn-back::before,
+                .modal-add-header .btn-back::before {
                     width: 15px; height: 15px; /* Réduit (était 20px) pour tenir dans la lanière plus étroite */
                 }
                 .dashboard-header .btn-back::after,
                 .day-detail-header .btn-back::after,
                 .day-home-header .btn-back::after,
-                .trip-home-header .btn-back::after {
+                .trip-home-header .btn-back::after,
+                .modal-add-header .btn-back::after {
                     content: ""; /* Rivet doré, mêmes couleurs que .case-strap::after / .cover-back::after */
                     margin-top: 6px;
                     width: 7px; height: 7px; border-radius: 50%;
@@ -1255,7 +1336,9 @@
                 /* .btn-orga/.btn-map/.btn-recap/.btn-finance/.btn-docs sont    */
                 /* CONSERVÉES telles quelles : le JS (écouteurs, ripple, effet  */
                 /* rebond) cible ces classes directement, seule leur apparence  */
-                /* change ici.                                                  */
+                /* change ici. .btn-day (grille "Planification", day-home-screen) */
+                /* rejoint la même famille -- badge rond = numéro du jour au lieu */
+                /* d'une icône, mais même carte crème/ombre/badge/label. */
                 /* ============================================================ */
                     .trip-actions {
                         display: grid;
@@ -1264,7 +1347,7 @@
                         flex-shrink: 0;
                     }
 
-                    .btn-orga, .btn-map, .btn-recap, .btn-finance, .btn-docs {
+                    .btn-orga, .btn-map, .btn-recap, .btn-finance, .btn-docs, .btn-day {
                         background-color: #FFFBF2;
                         color: var(--titre-h1-color);
                         border: none;
@@ -1280,7 +1363,7 @@
                         -webkit-tap-highlight-color: transparent;
                     }
                     .btn-orga .icon-badge, .btn-map .icon-badge, .btn-recap .icon-badge,
-                    .btn-finance .icon-badge, .btn-docs .icon-badge {
+                    .btn-finance .icon-badge, .btn-docs .icon-badge, .btn-day .icon-badge {
                         width: 38px; height: 38px; border-radius: 50%;
                         background: var(--btn-accent-bg);
                         display: flex; align-items: center; justify-content: center;
@@ -1289,7 +1372,7 @@
                     .btn-orga .icon-badge svg, .btn-map .icon-badge svg, .btn-recap .icon-badge svg,
                     .btn-finance .icon-badge svg, .btn-docs .icon-badge svg { width: 18px; height: 18px; }
                     .btn-orga .btn-label, .btn-map .btn-label, .btn-recap .btn-label,
-                    .btn-finance .btn-label, .btn-docs .btn-label {
+                    .btn-finance .btn-label, .btn-docs .btn-label, .btn-day .btn-label {
                         font-size: 11px; font-weight: bold; text-align: center; line-height: 1.2;
                     }
 
@@ -1297,6 +1380,25 @@
                        en fond plein, comme dans la maquette validée. */
                     .btn-orga { background-color: var(--btn-accent-bg); color: #FFFBF2; }
                     .btn-orga .icon-badge { background: #FFFBF2; }
+
+                    /* --- Spécificités de .btn-day : le badge rond affiche le numéro du */
+                    /* jour (texte) au lieu d'une icône SVG -- .icon-badge de base ne     */
+                    /* prévoit ni couleur ni taille de police pour du texte. Carré (grille */
+                    /* de "Planification", nombre de jours variable) plutôt que dimensionné */
+                    /* par son contenu comme les 5 tuiles d'action ci-dessus : le contenu   */
+                    /* est donc recentré verticalement dans le carré. */
+                    .btn-day {
+                        width: 100%;
+                        box-sizing: border-box;
+                        aspect-ratio: 1 / 1;
+                        justify-content: center;
+                        user-select: none;
+                    }
+                    .btn-day .icon-badge {
+                        color: #FFFBF2;
+                        font-size: 15px;
+                        font-weight: bold;
+                    }
 
                     /* Effet Ripple */
                     .ripple {
@@ -1382,6 +1484,7 @@
                     .day-detail-header .btn-back.bouncing,
                     .day-home-header .btn-back.bouncing,
                     .trip-home-header .btn-back.bouncing,
+                    .modal-add-header .btn-back.bouncing,
                     #signup-screen .btn-back.bouncing {
                         animation: bounce-anim 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
                     }
@@ -1466,29 +1569,11 @@
                     }
                 
                 /* --- Bouton des jours --- */
-                    .btn-day {
-                        width: 100%; /* Force le bouton à prendre toute la largeur de sa cellule */
-                        aspect-ratio: 1 / 1; /* Force le bouton à être parfaitement carré */
-                        box-sizing: border-box; /* Inclut bordure et padding dans le calcul de la taille */
-                        display: flex; /* Active Flexbox pour centrer le texte dans le bouton */
-                        justify-content: center; /* Centre le texte horizontalement */
-                        align-items: center; /* Centre le texte verticalement */
-                        font-size: 20px; /* Définit la taille de la police */
-                        font-weight: bold; /* Met le texte en gras */
-                        background-color: var(--btn-bg-color); /* Applique la variable de fond définie */
-                        border: 2px solid var(--btn-border-color); /* Applique la variable de bordure définie */
-                        color: var(--text-color-white); /* Applique la variable de couleur de police définie */
-                        border-radius: 8px; /* Arrondit légèrement les coins du bouton */
-                        cursor: pointer; /* Change le curseur en main pour indiquer l'interactivité */
-                        user-select: none; /* Empêche la sélection du texte au clic rapide */
-                        white-space: nowrap;
-                        overflow: hidden;
-                        -webkit-tap-highlight-color: transparent; /* Supprime la surbrillance bleue par défaut au clic/toucher */
-                    }
-                    .btn-day:active {
-                        background-color: #ddd; /* Change la couleur de fond lors du clic pour un effet visuel */
-                        transform: scale(0.98); /* Réduit très légèrement la taille pour un effet de pression */
-                    }
+                /* Apparence déplacée dans la famille .btn-orga/.btn-map/.btn-recap/
+                   .btn-finance/.btn-docs/.btn-day (section "Actions" ci-dessus, ~ligne
+                   1348) : carte crème + badge rond accent + libellé, au lieu du pavé
+                   menthe plat à bordure --btn-border-color (jamais définie ailleurs
+                   dans le fichier -- la bordure ne s'affichait donc pas). */
 
                     /* Gestion des écrans dynamiques */
                     .day-orga-screen {
@@ -1810,9 +1895,20 @@
                     .finance-input-total { width: 62px; }
                     /* Champs plus larges dans la carte Budget agrandie : ceux-ci vivent à
                        font-size:30px (voir .finance-card-budget .finance-input ci-dessus),
-                       les largeurs par défaut (pensées pour 16px) les auraient coupés. */
-                    .finance-card-budget .finance-input { width: 88px; }
-                    .finance-card-budget .finance-input-total { width: 110px; }
+                       les largeurs par défaut (pensées pour 16px) les auraient coupés.
+                       114px = largeur mesurée pour afficher "8888.88" (4 chiffres + virgule
+                       + 2 décimales) en entier à 30px gras, sans rogner le texte. Les deux
+                       champs partagent la même largeur pour rester symétriques. */
+                    .finance-card-budget .finance-input { width: 114px; }
+                    .finance-card-budget .finance-input-total { width: 114px; }
+                    /* "/" séparateur : décalé par la marge plutôt que par le simple espace du
+                       texte HTML d'origine, pour garder un écart net et maîtrisé maintenant
+                       que les deux champs sont plus larges. */
+                    .budget-slash {
+                        margin: 0 4px;
+                        color: var(--titre-h1-color);
+                        opacity: .55;
+                    }
 
                     .finance-input:hover,
                     .finance-input:focus {
@@ -2669,6 +2765,7 @@
                  <!-- Overlay sombre pour le menu -->
                 <div id="options-overlay" class="options-overlay"></div>
                 <div id="options-menu" class="options-menu">
+                    <p class="options-menu-title">Que veux-tu faire ?</p>
                 <!-- On passe 'edit' ou 'delete' en paramètre -->
                     <button onclick="prepareAction('edit')">Modifier</button>
                     <button onclick="prepareAction('delete')" class="btn-delete">Supprimer</button>
@@ -2749,7 +2846,7 @@
                                     <input type="file" id="trip-image-input" accept="image/*" onchange="previewImage(this)" hidden> <!-- Input fichier caché -->
                                     <div id="image-preview-container" class="image-preview-box">
                                         <span id="image-placeholder">📷 Choisir une photo</span> <!-- Texte par défaut -->
-                                        <img id="image-preview" src="" alt="Aperçu" style="display:none; width:190px; height:73px; object-fit:cover;"> <!-- Image aperçu -->
+                                        <img id="image-preview" src="" alt="Aperçu" style="display:none; width:210px; height:90px; object-fit:cover;"> <!-- Image aperçu -->
                                     </div>
                                 </label>
 
@@ -3085,7 +3182,7 @@
                         </div>
                         <div class="finance-budget-row">
                             <div class="finance-budget-values">
-                                <input type="number" id="finance-expenses-input" class="finance-input" value="200"> / <input type="number" id="finance-budget-input" class="finance-input finance-input-total" value="1000"><span class="currency">€</span>
+                                <input type="number" id="finance-expenses-input" class="finance-input" value="200"><span class="budget-slash">/</span><input type="number" id="finance-budget-input" class="finance-input finance-input-total" value="1000"><span class="currency">€</span>
                             </div>
                             <div class="finance-budget-percent" id="finance-percent">0%</div>
                         </div>
@@ -4007,7 +4104,11 @@
                             const row = document.createElement('div');
                             row.className = 'past-trip-row';
                             row.innerHTML = `
-                                <div class="past-trip-photo"><img src="${trip.image}" alt="${trip.name}"></div>
+                                <div class="past-trip-photo">
+                                    <img src="${trip.image}" alt="${trip.name}">
+                                    <div class="tag-tab" style="left:8px;"></div>
+                                    <span class="duration-pill" style="top:5px;right:5px;font-size:9.5px;padding:2px 6px;">${trip.duration} j</span>
+                                </div>
                                 <div class="past-trip-body">
                                     <div class="shelf-title">${trip.name}</div>
                                     <div class="shelf-dates">${formatShortDate(trip.dateStart)} – ${formatShortDate(trip.dateEnd)}</div>
@@ -4897,7 +4998,10 @@
                             for (let i = 1; i <= duration; i++) { // Boucle de 1 jusqu'au nombre de jours (diffTime)
                                 const btn = document.createElement('button'); // Crée un nouvel élément bouton dans la mémoire
                                 btn.className = 'btn-day'; // Applique la classe CSS pour le design uniforme
-                                btn.textContent = `Jour ${i}`; // Définit le texte affiché sur le bouton
+                                // Même structure badge + libellé que les tuiles d'action de trip-home-screen
+                                // (.btn-orga/.btn-map/...) : badge rond accent affichant le numéro du jour,
+                                // libellé "Jour N" en dessous -- au lieu d'un simple texte centré.
+                                btn.innerHTML = `<span class="icon-badge">${i}</span><span class="btn-label">Jour ${i}</span>`;
                                 
                                 // Attribution de données uniques pour l'indépendance de chaque bouton
                                 btn.dataset.dayId = i; // Stocke le numéro du jour (1, 2, 3...)
