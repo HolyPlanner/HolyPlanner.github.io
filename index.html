@@ -1673,73 +1673,99 @@
             /* ============================================== */
             /* d. Style commun aux champs de saisie */
             /* ============================================== */
+                /* "En creux" menthe -- même recette que .field (mallette login/signup) et
+                   .form-add-trip input (modale "Ajouter un voyage") -- remplace l'ancienne
+                   bordure bleu foncé/fond transparent qui détonnait avec le reste de l'app. */
                 .day-input, .day-textarea {
                     width: 100%;
-                    padding: 10px;
-                    border: 2px solid var(--text-color-white); /* Applique une bordure bleu foncé de 2px */
-                    color: var(--text-color-white); /* Applique la couleur bleu foncé au texte */
-                    background: transparent; /* Rend le fond transparent */
-                    box-shadow: 2px 2px 6px var(--btn-bg-color); /* Ajoute une ombre portée pour le relief */
-                    border-radius: 10px;
-                    /*display: flex; /* Active Flexbox pour centrer le contenu interne */
-                    /*align-items: center; /* Centre verticalement le contenu */
-                    /*justify-content: center; /* Centre horizontalement le contenu */
-                    font-size: 20px;
+                    height: 46px;
+                    padding: 0 14px;
+                    border: none;
+                    border-radius: 14px;
+                    background: linear-gradient(180deg, #93C0A9 0%, #ACD6C4 100%);
+                    box-shadow:
+                        inset 0 3px 5px rgba(27,55,50,.28),
+                        inset 0 -1px 0 rgba(255,255,255,.5);
+                    color: var(--text-color-white);
+                    font-size: 15px;
                     font-family: var(--main-font);
-                    font-weight: bold; /* Met le texte en gras */
-                    /*text-align: center; /* Centre le texte */
+                    font-weight: bold;
                     box-sizing: border-box;
+                }
+                .day-input:focus, .day-textarea:focus {
+                    outline: none;
+                    box-shadow:
+                        inset 0 3px 5px rgba(27,55,50,.28),
+                        inset 0 -1px 0 rgba(255,255,255,.5),
+                        0 0 0 3px rgba(46,125,122,.35);
                 }
 
                 .day-textarea {
                     resize: none; /* Empêche le redimensionnement manuel */
-                    height: 100%; /* Prend toute la hauteur disponible */
+                    height: 100%; /* Prend toute la hauteur disponible (voir .activities-block .day-textarea, ré-ajusté en flex:1) */
+                    padding: 12px 14px;
                 }
                 [data-time-picker] {
                     cursor: pointer; /* Indique que le champ ouvre un sélecteur au clic, plutôt que de taper au clavier */
                 }
-                /* BLOC 1 : Transport (Grille de 4 ou 2 lignes selon l'écran) */
-                .travel-block {
-                    display: grid;
-                    grid-template-columns: 1fr 1fr; /* 2 colonnes */
-                    gap: 10px;
-                    flex-shrink: 0; /* Ne réduit pas ce bloc */
-                }
 
-                /* BLOC 2 : Logement (2 champs côte à côte) */
-                .lodging-block {
-                    display: grid;
-                    grid-template-columns: 2fr 1fr; /* Le nom prend plus de place que l'heure */
-                    gap: 10px;
+                /* Petit libellé icône + majuscules colorées, en tête de chaque carte de
+                   section -- même recette que .finance-card-label/.stat-label. */
+                .day-block-label {
+                    font-size: 10.5px; font-weight: bold; letter-spacing: .05em; text-transform: uppercase;
+                    color: var(--btn-accent-bg);
+                    display: flex; align-items: center; gap: 6px;
+                    margin-bottom: 10px;
+                }
+                .day-block-label svg { width: 13px; height: 13px; flex-shrink: 0; }
+
+                /* Cartes de section (Transport/Logement/Activités/POI) : même habillage que
+                   .finance-card -- fond crème #FFFBF2, coins arrondis, ombre douce -- au lieu
+                   d'inputs posés à nu sur le fond de l'écran. */
+                .travel-block, .lodging-block, .activities-block, .day-poi-block {
+                    background-color: #FFFBF2;
+                    border-radius: 16px;
+                    padding: 14px 16px 16px;
+                    box-shadow: 0 5px 12px rgba(38,70,83,.14);
+                    box-sizing: border-box;
                     flex-shrink: 0;
                 }
 
-                /* BLOC 3 : Activités (Prend TOUT l'espace restant) */
+                /* BLOC 1 : Transport (grille de champs, à l'intérieur de la carte) */
+                .travel-block-grid {
+                    display: grid;
+                    grid-template-columns: 1fr 1fr; /* 2 colonnes */
+                    gap: 10px;
+                }
+
+                /* BLOC 2 : Logement (2 champs côte à côte, à l'intérieur de la carte) */
+                .lodging-block-grid {
+                    display: grid;
+                    grid-template-columns: 2fr 1fr; /* Le nom prend plus de place que l'heure */
+                    gap: 10px;
+                }
+
+                /* BLOC 3 : Activités (la carte prend TOUT l'espace restant) */
                 .activities-block {
                     flex-grow: 1; /* C'est la clé : prend l'espace libre */
+                    flex-shrink: 1; /* Redéfini après le flex-shrink:0 partagé ci-dessus : seule cette carte doit pouvoir se réduire */
                     display: flex;
                     flex-direction: column;
                     min-height: 100px; /* Hauteur minimale de sécurité */
                 }
+                .activities-block .day-textarea {
+                    flex: 1; /* Remplit le reste de la carte, sous le libellé */
+                    height: auto; /* Remplace le height:100% de base, qui ignorait la place prise par le libellé */
+                }
 
                 /* POI de ce jour (intégrés depuis l'écran Carte) */
-                .day-poi-block {
-                    margin-top: 15px;
-                    flex-shrink: 0;
-                }
-                .day-poi-block h3 {
-                    font-family: var(--main-font);
-                    font-size: 16px;
-                    color: var(--titre-h1-color);
-                    margin: 0 0 8px 0;
-                }
                 .day-poi-item {
-                    background: rgba(255,255,255,0.5);
-                    border: 2px solid var(--text-color-white);
-                    border-radius: 10px;
-                    padding: 8px 12px;
+                    background: rgba(38,70,83,.06);
+                    border-radius: 12px;
+                    padding: 10px 12px;
                     margin-bottom: 8px;
                 }
+                .day-poi-item:last-child { margin-bottom: 0; }
                 .day-poi-item-title {
                     font-family: var(--main-font);
                     font-weight: bold;
@@ -1748,32 +1774,57 @@
                 }
                 .day-poi-item-comment {
                     font-size: 12px;
-                    color: #666;
+                    color: var(--text-color-white);
+                    opacity: .65;
                     margin-top: 3px;
                     white-space: pre-wrap;
                 }
 
-                /* BOUTONS DE NAVIGATION (En bas, écartés) */
+                /* BOUTONS DE NAVIGATION (En bas, pleine largeur à parts égales) */
                 .nav-buttons {
                     display: flex;
-                    justify-content: space-between; /* Un à gauche, un à droite */
-                    margin-top: 10px;
+                    gap: 10px;
+                    margin-top: 4px;
                     flex-shrink: 0;
                 }
 
+                /* "Jour Suiv." = action "pressable" pleine (même recette que .btn-connexion),
+                   "Jour Préc." = contour fantôme (même recette que #time-picker-cancel) --
+                   remplace les deux boutons plats identiques d'origine. */
                 .btn-nav {
-                    padding: 10px 20px;
-                    background-color: var(--btn-bg-color);
-                    border: 1px solid var(--text-color-white);
-                    border-radius: 8px;
+                    flex: 1;
+                    height: 46px;
+                    padding: 0 16px;
+                    border: none;
+                    border-radius: 14px;
                     cursor: pointer;
                     font-weight: bold;
-                    color: var(--text-color-white);
-                    transition: background 0.2s, transform 0.1s ease;
+                    font-size: 14px;
+                    font-family: var(--main-font);
+                    transition: transform .08s ease, box-shadow .08s ease;
+                    -webkit-tap-highlight-color: transparent;
                 }
-
+                .btn-nav.btn-prev {
+                    background: transparent;
+                    border: 2px solid var(--text-color-white);
+                    color: var(--text-color-white);
+                }
+                .btn-nav.btn-next {
+                    background: linear-gradient(165deg, #3F958D 0%, #235F5C 100%);
+                    color: #FFFBF2;
+                    box-shadow:
+                        inset 0 1px 0 rgba(255,255,255,.35),
+                        0 3px 0 rgba(19,49,47,.4),
+                        0 8px 14px rgba(38,70,83,.24);
+                }
                 .btn-nav:active {
-                    transform: scale(0.9); /* Effet plus marqué (était 0.98) */
+                    transform: translateY(2px);
+                }
+                .btn-nav.btn-next:active {
+                    box-shadow:
+                        inset 0 1px 0 rgba(255,255,255,.25),
+                        0 1px 0 rgba(19,49,47,.4),
+                        0 4px 8px rgba(38,70,83,.18);
                 }
 
         /* ================= */
@@ -1841,12 +1892,21 @@
                     .finance-card-label svg { width: 13px; height: 13px; flex-shrink: 0; }
 
                     /* --- Carte Budget : dépenses / total + pourcentage + barre de progression --- */
+                    /* Réel et budget total sur une ligne (.finance-budget-row), pourcentage et
+                       barre sur la ligne suivante (.finance-budget-progress-row) -- la barre est
+                       en flex:1 et absorbe tout l'espace que le pourcentage ne prend pas, plutôt
+                       que deux largeurs fixes qui se chevaucheraient si le pourcentage passe à
+                       3 chiffres (ex: "150%" en dépassement de budget). */
                     .finance-budget-row { display: flex; align-items: baseline; justify-content: space-between; }
-                    .finance-budget-values { font-size: 16px; font-weight: bold; color: var(--titre-h1-color); display: flex; align-items: baseline; }
-                    .finance-budget-percent { font-size: 15px; font-weight: bold; color: var(--btn-accent-bg); }
+                    .finance-budget-total { font-size: 16px; font-weight: bold; color: var(--titre-h1-color); display: flex; align-items: baseline; flex-shrink: 0; }
+                    .finance-budget-progress-row { display: flex; align-items: center; gap: 10px; margin-top: 2px; }
+                    .finance-budget-percent { font-size: 15px; font-weight: bold; color: var(--btn-accent-bg); flex-shrink: 0; }
                     /* .budget-track / .budget-fill sont réutilisées telles quelles (voir section
                        04, ÉCRAN D'ACCUEIL DU VOYAGE) : la carte Budget de cet écran et celle de
-                       trip-home-screen restent synchronisées par le même JS (updateBudgetBar). */
+                       trip-home-screen restent synchronisées par le même JS (updateBudgetBar).
+                       Ici la barre vit dans .finance-budget-progress-row : voir le flex:1 scopé
+                       plus bas (section .finance-card-budget) qui la fait s'ajuster à la largeur
+                       prise par le pourcentage. */
 
                     /* --- Variante "carte héros" : Budget ET Reste à dépenser sont les deux     */
                     /* indicateurs principaux de l'écran, on les grossit à l'identique et on leur */
@@ -1862,10 +1922,14 @@
                     .finance-card-lg .finance-card-label svg { width: 18px; height: 18px; }
                     .finance-card-lg .currency { font-size: 20px; margin-left: 5px; }
 
-                    .finance-card-budget .finance-budget-values { font-size: 30px; }
+                    .finance-card-budget .finance-budget-total { font-size: 30px; }
                     .finance-card-budget .finance-input { font-size: 30px; }
                     .finance-card-budget .finance-budget-percent { font-size: 22px; }
-                    .finance-card-budget .budget-track { height: 10px; margin-top: 4px; }
+                    .finance-card-budget .finance-budget-progress-row { margin-top: 6px; }
+                    /* flex:1 : la barre prend tout ce que le pourcentage ne prend pas (voir
+                       .finance-budget-percent flex-shrink:0 ci-dessus) au lieu d'une largeur
+                       fixe qui la ferait chevaucher un pourcentage à 3 chiffres. */
+                    .finance-card-budget .budget-track { height: 10px; flex: 1; min-width: 0; margin-top: 0; }
 
                     /* --- Carte Reste à dépenser --- */
                     .finance-value-row { display: flex; align-items: baseline; }
@@ -3181,12 +3245,15 @@
                             Budget
                         </div>
                         <div class="finance-budget-row">
-                            <div class="finance-budget-values">
-                                <input type="number" id="finance-expenses-input" class="finance-input" value="200"><span class="budget-slash">/</span><input type="number" id="finance-budget-input" class="finance-input finance-input-total" value="1000"><span class="currency">€</span>
+                            <input type="number" id="finance-expenses-input" class="finance-input" value="200">
+                            <div class="finance-budget-total">
+                                <span class="budget-slash">/</span><input type="number" id="finance-budget-input" class="finance-input finance-input-total" value="1000"><span class="currency">€</span>
                             </div>
+                        </div>
+                        <div class="finance-budget-progress-row">
+                            <div class="budget-track"><div class="budget-fill" id="finance-budget-fill"></div></div>
                             <div class="finance-budget-percent" id="finance-percent">0%</div>
                         </div>
-                        <div class="budget-track"><div class="budget-fill" id="finance-budget-fill"></div></div>
                     </div>
 
                     <!-- Carte Reste à dépenser : même gabarit que la carte Budget ci-dessus -->
@@ -4590,19 +4657,41 @@
                     // depuis updateAllDisplays() pour rester synchronisées entre les deux écrans.
                     function updateBudgetBar(budget, expenses) {
                         const fills = document.querySelectorAll('.budget-fill');
-                        if (!fills.length) return;
-                        let width = '0%';
-                        let background = null;
-                        if (budget > 0 && expenses >= 0) {
-                            const ratio = expenses / budget;
-                            width = Math.min(Math.round(ratio * 100), 100) + '%';
-                            background = (ratio <= 1) ? 'var(--btn-accent-bg)' : '#8B0000';
+                        if (fills.length) {
+                            let width = '0%';
+                            let background = null;
+                            if (budget > 0 && expenses >= 0) {
+                                const ratio = expenses / budget;
+                                width = Math.min(Math.round(ratio * 100), 100) + '%';
+                                background = (ratio <= 1) ? 'var(--btn-accent-bg)' : '#8B0000';
+                            }
+                            fills.forEach(fill => {
+                                fill.style.width = width;
+                                if (background) fill.style.background = background;
+                            });
                         }
-                        fills.forEach(fill => {
-                            fill.style.width = width;
-                            if (background) fill.style.background = background;
-                        });
+                        autosizeFinanceBudgetInput(); // Réajuste #finance-budget-input à sa valeur (voir plus bas)
                     }
+
+                    // Auto-dimensionne #finance-budget-input à la largeur exacte de sa valeur :
+                    // .budget-slash (le "/") garde ainsi toujours le même écart de 4px (sa marge
+                    // CSS) avec le premier chiffre du budget, quel que soit le nombre de chiffres
+                    // tapés, au lieu d'une largeur fixe qui laisserait un vide ou ferait déborder
+                    // le montant hors du champ. +8px de marge : écart mesuré entre la largeur
+                    // "canvas" du texte et le rendu réel d'un <input> (le canvas sous-estime
+                    // légèrement le rendu -- constaté empiriquement, ~5-6px sur cette police).
+                    let __financeBudgetInputMeasureCanvas = null;
+                    function autosizeFinanceBudgetInput() {
+                        const input = document.getElementById('finance-budget-input');
+                        if (!input) return;
+                        if (!__financeBudgetInputMeasureCanvas) __financeBudgetInputMeasureCanvas = document.createElement('canvas');
+                        const ctx = __financeBudgetInputMeasureCanvas.getContext('2d');
+                        const cs = getComputedStyle(input);
+                        ctx.font = `${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
+                        const textWidth = ctx.measureText(input.value || '0').width;
+                        input.style.width = Math.ceil(textWidth + 8) + 'px';
+                    }
+                    autosizeFinanceBudgetInput(); // Largeur initiale correcte dès le chargement (valeur par défaut "1000")
 
                         // =======================
                         // d. Calcul de la Finance
@@ -4897,30 +4986,37 @@
                                         </div>
                                         <div class="day-detail-content">
                                             <div class="input-group travel-block" data-day="${dayId}">
-                                                <input type="text" placeholder="Lieu de départ" class="day-input" name="start_location" value="${val('start_location')}">
-                                                <input type="text" placeholder="Lieu d'arrivée" class="day-input" name="end_location" value="${val('end_location')}">
-                                                <input type="text" placeholder="Itinéraire" class="day-input" name="route" value="${val('route')}">
-                                                <select class="day-input" name="transport_type">
-                                                    <option value="" disabled ${!savedData.transport_type ? 'selected' : ''}>Moyen de transport</option>
-                                                    <option value="voiture" ${isSelected('transport_type', 'voiture')}>Voiture</option>
-                                                    <option value="train" ${isSelected('transport_type', 'train')}>Train</option>
-                                                    <option value="avion" ${isSelected('transport_type', 'avion')}>Avion</option>
-                                                    <option value="bus" ${isSelected('transport_type', 'bus')}>Bus</option>
-                                                    <option value="marche" ${isSelected('transport_type', 'marche')}>Marche</option>
-                                                </select>
+                                                <div class="day-block-label"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="5" cy="6" r="2" stroke="#2E7D7A" stroke-width="2"/><circle cx="19" cy="18" r="2" stroke="#2E7D7A" stroke-width="2"/><path d="M7 7.5l10 9" stroke="#2E7D7A" stroke-width="2" stroke-dasharray="3 3"/></svg>Transport</div>
+                                                <div class="travel-block-grid">
+                                                    <input type="text" placeholder="Lieu de départ" class="day-input" name="start_location" value="${val('start_location')}">
+                                                    <input type="text" placeholder="Lieu d'arrivée" class="day-input" name="end_location" value="${val('end_location')}">
+                                                    <input type="text" placeholder="Itinéraire" class="day-input" name="route" value="${val('route')}">
+                                                    <select class="day-input" name="transport_type">
+                                                        <option value="" disabled ${!savedData.transport_type ? 'selected' : ''}>Moyen de transport</option>
+                                                        <option value="voiture" ${isSelected('transport_type', 'voiture')}>Voiture</option>
+                                                        <option value="train" ${isSelected('transport_type', 'train')}>Train</option>
+                                                        <option value="avion" ${isSelected('transport_type', 'avion')}>Avion</option>
+                                                        <option value="bus" ${isSelected('transport_type', 'bus')}>Bus</option>
+                                                        <option value="marche" ${isSelected('transport_type', 'marche')}>Marche</option>
+                                                    </select>
+                                                </div>
                                             </div>
 
                                             <div class="input-group lodging-block" data-day="${dayId}">
-                                                <input type="text" placeholder="Nom du logement" class="day-input" name="lodging_name" value="${val('lodging_name')}">
-                                                <input type="text" readonly class="day-input" name="arrival_time" placeholder="Heure d'arrivée" data-time-picker value="${val('arrival_time')}">
+                                                <div class="day-block-label"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 10.5L12 4l8 6.5V19a1 1 0 01-1 1h-4v-6H9v6H5a1 1 0 01-1-1v-8.5z" stroke="#2E7D7A" stroke-width="2" stroke-linejoin="round"/></svg>Logement</div>
+                                                <div class="lodging-block-grid">
+                                                    <input type="text" placeholder="Nom du logement" class="day-input" name="lodging_name" value="${val('lodging_name')}">
+                                                    <input type="text" readonly class="day-input" name="arrival_time" placeholder="Heure d'arrivée" data-time-picker value="${val('arrival_time')}">
+                                                </div>
                                             </div>
 
                                             <div class="activities-block" data-day="${dayId}">
+                                                <div class="day-block-label"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 20l.9-3.6L15.5 6 18 8.5 7.4 19.1 4 20z" stroke="#2E7D7A" stroke-width="2" stroke-linejoin="round"/><path d="M13.5 7.5L16.5 10.5" stroke="#2E7D7A" stroke-width="2"/></svg>Activités</div>
                                                 <textarea placeholder="Activités, notes, idées..." class="day-textarea" name="activities">${val('activities')}</textarea>
                                             </div>
 
                                             <div class="day-poi-block">
-                                                <h3>📍 Points d'intérêt de ce jour</h3>
+                                                <div class="day-block-label"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 21s-6-5-6-10a6 6 0 0112 0c0 5-6 10-6 10z" stroke="#2E7D7A" stroke-width="2"/><circle cx="12" cy="11" r="2.2" stroke="#2E7D7A" stroke-width="2"/></svg>Points d'intérêt de ce jour</div>
                                                 <div class="day-poi-list" data-day-poi="${dayId}"></div>
                                             </div>
                                         </div>
@@ -4982,6 +5078,7 @@
                         // 2. Extraction de la durée et du nom
                         const duration = parseInt(sourceCard.dataset.diffTime); // Lit la valeur dynamique 'diffTime' stockée dans l'attribut data
                         const tripName = document.getElementById('trip-home-title')?.textContent || "Voyage"; // Récupère le nom du voyage courant affiché dans l'écran trip-home-screen
+                        const dateStart = cloudTrips.find(t => t.id === tripId)?.dateStart; // Date de début du voyage, pour calculer la date exacte de chaque jour (voir formatDayLabel)
 
                         // 3. Préparation de l'écran de planification
                         const screen = document.getElementById('day-home-screen'); // Cible le conteneur principal de l'écran
@@ -5000,8 +5097,12 @@
                                 btn.className = 'btn-day'; // Applique la classe CSS pour le design uniforme
                                 // Même structure badge + libellé que les tuiles d'action de trip-home-screen
                                 // (.btn-orga/.btn-map/...) : badge rond accent affichant le numéro du jour,
-                                // libellé "Jour N" en dessous -- au lieu d'un simple texte centré.
-                                btn.innerHTML = `<span class="icon-badge">${i}</span><span class="btn-label">Jour ${i}</span>`;
+                                // libellé sous forme de date ("Ven 11/09") en dessous -- réutilise
+                                // formatDayLabel (déjà utilisé par day-detail-screen/récap/carte), dont on
+                                // capitalise juste la première lettre pour ce nouvel affichage.
+                                const dayDate = formatDayLabel(dateStart, i); // ex: "ven 11/09" (ou "Jour i" si date de début inconnue)
+                                const dayLabel = dayDate.charAt(0).toUpperCase() + dayDate.slice(1);
+                                btn.innerHTML = `<span class="icon-badge">${i}</span><span class="btn-label">${dayLabel}</span>`;
                                 
                                 // Attribution de données uniques pour l'indépendance de chaque bouton
                                 btn.dataset.dayId = i; // Stocke le numéro du jour (1, 2, 3...)
@@ -5861,31 +5962,38 @@
                             <div class="day-detail-content">
                                 <!-- Ajout de data-day-id pour faciliter la récupération des données plus tard -->
                                 <div class="input-group travel-block" data-day="${dayId}">
-                                    <input type="text" placeholder="Lieu de départ" class="day-input" name="start_location">
-                                    <input type="text" placeholder="Lieu d'arrivée" class="day-input" name="end_location">
-                                    <input type="text" placeholder="Itinéraire" class="day-input" name="route">
-                                    <select class="day-input" name="transport_type">
-                                        <option value="" disabled selected>Moyen de transport</option>
-                                        <option value="voiture">Voiture</option>
-                                        <option value="train">Train</option>
-                                        <option value="avion">Avion</option>
-                                        <option value="bus">Bus</option>
-                                        <option value="marche">Marche</option>
-                                    </select>
+                                    <div class="day-block-label"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="5" cy="6" r="2" stroke="#2E7D7A" stroke-width="2"/><circle cx="19" cy="18" r="2" stroke="#2E7D7A" stroke-width="2"/><path d="M7 7.5l10 9" stroke="#2E7D7A" stroke-width="2" stroke-dasharray="3 3"/></svg>Transport</div>
+                                    <div class="travel-block-grid">
+                                        <input type="text" placeholder="Lieu de départ" class="day-input" name="start_location">
+                                        <input type="text" placeholder="Lieu d'arrivée" class="day-input" name="end_location">
+                                        <input type="text" placeholder="Itinéraire" class="day-input" name="route">
+                                        <select class="day-input" name="transport_type">
+                                            <option value="" disabled selected>Moyen de transport</option>
+                                            <option value="voiture">Voiture</option>
+                                            <option value="train">Train</option>
+                                            <option value="avion">Avion</option>
+                                            <option value="bus">Bus</option>
+                                            <option value="marche">Marche</option>
+                                        </select>
+                                    </div>
                                 </div>
-                                
+
                                 <div class="input-group lodging-block" data-day="${dayId}">
-                                    <input type="text" placeholder="Nom du logement" class="day-input" name="lodging_name">
-                                    <input type="text" readonly class="day-input" name="arrival_time" placeholder="Heure d'arrivée" data-time-picker>
-                                    <!-- Note: type="time" n'accepte pas l'attribut placeholder dans tous les navigateurs -->
+                                    <div class="day-block-label"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 10.5L12 4l8 6.5V19a1 1 0 01-1 1h-4v-6H9v6H5a1 1 0 01-1-1v-8.5z" stroke="#2E7D7A" stroke-width="2" stroke-linejoin="round"/></svg>Logement</div>
+                                    <div class="lodging-block-grid">
+                                        <input type="text" placeholder="Nom du logement" class="day-input" name="lodging_name">
+                                        <input type="text" readonly class="day-input" name="arrival_time" placeholder="Heure d'arrivée" data-time-picker>
+                                        <!-- Note: type="time" n'accepte pas l'attribut placeholder dans tous les navigateurs -->
+                                    </div>
                                 </div>
 
                                 <div class="activities-block" data-day="${dayId}">
+                                    <div class="day-block-label"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 20l.9-3.6L15.5 6 18 8.5 7.4 19.1 4 20z" stroke="#2E7D7A" stroke-width="2" stroke-linejoin="round"/><path d="M13.5 7.5L16.5 10.5" stroke="#2E7D7A" stroke-width="2"/></svg>Activités</div>
                                     <textarea placeholder="Activités, notes, idées..." class="day-textarea" name="activities"></textarea>
                                 </div>
 
                                 <div class="day-poi-block">
-                                    <h3>📍 Points d'intérêt de ce jour</h3>
+                                    <div class="day-block-label"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 21s-6-5-6-10a6 6 0 0112 0c0 5-6 10-6 10z" stroke="#2E7D7A" stroke-width="2"/><circle cx="12" cy="11" r="2.2" stroke="#2E7D7A" stroke-width="2"/></svg>Points d'intérêt de ce jour</div>
                                     <div class="day-poi-list" data-day-poi="${dayId}"></div>
                                 </div>
 
@@ -5893,7 +6001,7 @@
                                     <!-- Utilisation de classes au lieu d'IDs uniques pour la navigation -->
                                     <!-- Classe 'btn-prev' requise -->
                                     <button class="btn-nav btn-prev">&larr; Jour Préc.</button>
-                                    
+
                                     <!-- Classe 'btn-next' requise -->
                                     <button class="btn-nav btn-next">Jour Suiv. &rarr;</button>
                                 </div>
