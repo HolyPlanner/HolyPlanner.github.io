@@ -66,6 +66,12 @@
                 html {
                     overflow-x: hidden;
                     max-width: 100vw;
+                    /* Désactive le geste natif du navigateur/OS "swipe latéral depuis le
+                       bord = page précédente" : dans la PWA installée, sans historique de
+                       navigation, ce geste réduisait/fermait l'app au lieu de naviguer.
+                       Le swipe latéral est repris nous-mêmes en JS (voir tout en bas du
+                       script) pour reproduire l'effet du bouton .btn-back de l'écran actif. */
+                    overscroll-behavior-x: none;
                 }
                 /* Écran de connexion (header + titre + formulaire), jamais nommé jusqu'ici,
                    vivait en flux normal dans <body> -- donc scrollable avec la page si le
@@ -97,6 +103,7 @@
                     display: flex; /* Active le mode d'affichage Flexbox pour faciliter l'alignement des éléments enfants */
                     flex-direction: column; /* Empile les éléments enfants (comme header) verticalement de haut en bas */
                     overflow-x: hidden; /* Sécurité : masque tout débordement horizontal résiduel plutôt que de forcer un zoom/scroll */
+                    overscroll-behavior-x: none; /* Même raison que sur html (voir plus haut) : certains navigateurs mobiles n'appliquent la coupure du geste "swipe = retour" que si elle est aussi posée ici */
                     max-width: 100vw; /* Ne dépasse jamais la largeur visible de l'écran */
                 }
                 /* Ferme le bloc de style du body */
@@ -4227,7 +4234,29 @@
 
                     // b. Activer l'effet ripple sur les boutons d'action losanges
                     initRipple('.btn-orga, .btn-finance, .btn-docs, .btn-map, .btn-recap');
-            
+
+                // =======================================================
+                // 00-bis. RESTAURATION AUTOMATIQUE DE LA SESSION AU DÉMARRAGE
+                // =======================================================
+                    // Un token de session encore présent en localStorage (voir "let authToken"
+                    // plus haut) signifie que l'utilisateur était déjà connecté : on saute
+                    // directement au Dashboard au lieu de réafficher l'écran de connexion.
+                    // Indispensable sur mobile : sans ça, TOUT rechargement complet de page
+                    // (F5, relance de la PWA, ou le geste natif "tirer vers le bas pour
+                    // rafraîchir") ramenait systématiquement à l'écran de connexion même si
+                    // l'utilisateur n'avait jamais été déconnecté. apiRequest() gère déjà le
+                    // cas d'un token expiré/invalide (401) : il nettoiera authToken et
+                    // ré-affichera l'écran de connexion tout seul (voir plus haut), donc pas
+                    // besoin de vérifier le token nous-mêmes ici avant de tenter l'appel.
+                    if (authToken) {
+                        const loadingScreen = document.getElementById('loading-screen');
+                        if (loadingScreen) loadingScreen.classList.add('active');
+                        document.getElementById('dashboard-screen')?.classList.add('active');
+                        loadSavedTrips().finally(() => {
+                            if (loadingScreen) loadingScreen.classList.remove('active');
+                        });
+                    }
+
                 // =======================================
                 // 01. SÉLECTION DES ÉLÉMENTS DE CONNEXION
                 // =======================================
@@ -6857,6 +6886,104 @@
 
 
                     }
+
+                // ==========================================================
+                // GESTUELLE MOBILE : SWIPE LATÉRAL DEPUIS LE BORD = RETOUR
+                // ==========================================================
+                // Sur mobile, un swipe horizontal partant du bord gauche de l'écran est
+                // par défaut intercepté par le navigateur/l'OS comme un geste de
+                // navigation "page précédente" (voir overscroll-behavior-x: none posé sur
+                // html/body plus haut). Dans la PWA installée, sans historique de
+                // navigation, ce geste réduisait/fermait l'app au lieu de naviguer dans
+                // l'écran affiché. On intercepte nous-mêmes ce geste pour reproduire
+                // EXACTEMENT l'effet du bouton .btn-back visible à l'écran (quel que soit
+                // l'écran ouvert : dashboard, jour, carte, docs, modales...), en simulant
+                // un clic dessus -- ça réutilise telle quelle la logique de retour déjà
+                // propre à chaque écran (onclick, addEventListener ou délégation, peu
+                // importe le mécanisme d'origine).
+                document.addEventListener('DOMContentLoaded', () => {
+                    const EDGE_ZONE_PX = 24;       // Zone de départ du geste, depuis le bord gauche
+                    const SWIPE_THRESHOLD_PX = 70;  // Distance horizontale minimale pour valider le geste
+                    const MAX_VERTICAL_DRIFT = 60;  // Tolérance verticale (évite de confondre avec un scroll)
+                    const MAX_DURATION_MS = 800;    // Geste trop lent = probablement pas un swipe volontaire
+
+                    let touchStartX = null;
+                    let touchStartY = null;
+                    let touchStartTime = 0;
+                    let isEdgeSwipe = false;
+
+                    document.addEventListener('touchstart', (e) => {
+                        if (e.touches.length !== 1) return; // Ignore les gestes multi-doigts (pincer/zoomer...)
+                        const touch = e.touches[0];
+                        isEdgeSwipe = touch.clientX <= EDGE_ZONE_PX;
+                        touchStartX = touch.clientX;
+                        touchStartY = touch.clientY;
+                        touchStartTime = Date.now();
+                    }, { passive: true });
+
+                    document.addEventListener('touchmove', (e) => {
+                        if (!isEdgeSwipe || touchStartX === null) return;
+                        const touch = e.touches[0];
+                        const dx = touch.clientX - touchStartX;
+                        const dy = Math.abs(touch.clientY - touchStartY);
+                        // Dès qu'un mouvement horizontal volontaire depuis le bord est
+                        // confirmé, on bloque le comportement par défaut pour empêcher le
+                        // navigateur de déclencher son propre geste de navigation en même
+                        // temps que le nôtre (nécessite passive:false, voir plus bas).
+                        if (dx > 10 && dx > dy) {
+                            e.preventDefault();
+                        }
+                    }, { passive: false });
+
+                    document.addEventListener('touchend', (e) => {
+                        if (!isEdgeSwipe || touchStartX === null) return;
+                        const touch = e.changedTouches[0];
+                        const dx = touch.clientX - touchStartX;
+                        const dy = Math.abs(touch.clientY - touchStartY);
+                        const duration = Date.now() - touchStartTime;
+                        isEdgeSwipe = false;
+                        touchStartX = null;
+
+                        if (dx >= SWIPE_THRESHOLD_PX && dy <= MAX_VERTICAL_DRIFT && duration <= MAX_DURATION_MS) {
+                            triggerBackGesture();
+                        }
+                    });
+
+                    // Trouve le bouton .btn-back réellement visible à l'écran. Plusieurs
+                    // écrans peuvent être "actifs" en même temps, empilés via z-index (voir
+                    // les commentaires "indice d'empilement" dans le CSS) : on prend donc
+                    // celui du dessus, pas le premier trouvé dans le DOM.
+                    function triggerBackGesture() {
+                        const candidates = Array.from(document.querySelectorAll('.btn-back'))
+                            .filter(btn => btn.getClientRects().length > 0); // Exclut les écrans/modales masqués (display:none)
+                        if (candidates.length === 0) return;
+
+                        let topButton = candidates[0];
+                        let topZ = stackedZIndexOf(topButton);
+                        for (let i = 1; i < candidates.length; i++) {
+                            const z = stackedZIndexOf(candidates[i]);
+                            if (z >= topZ) {
+                                topZ = z;
+                                topButton = candidates[i];
+                            }
+                        }
+                        topButton.click();
+                    }
+
+                    // Remonte les ancêtres jusqu'à trouver un z-index explicite (celui posé
+                    // sur le conteneur plein écran / la modale, pas sur le bouton lui-même).
+                    function stackedZIndexOf(el) {
+                        let node = el;
+                        while (node && node !== document.body) {
+                            const style = window.getComputedStyle(node);
+                            if (style.position !== 'static' && style.zIndex !== 'auto') {
+                                return parseInt(style.zIndex, 10) || 0;
+                            }
+                            node = node.parentElement;
+                        }
+                        return 0;
+                    }
+                });
 
 
 
