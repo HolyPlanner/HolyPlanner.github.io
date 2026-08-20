@@ -1764,7 +1764,7 @@
                 /* Cartes de section (Transport/Logement/Activités/POI) : même habillage que
                    .finance-card -- fond crème #FFFBF2, coins arrondis, ombre douce -- au lieu
                    d'inputs posés à nu sur le fond de l'écran. */
-                .travel-block, .lodging-block, .activities-block, .day-poi-block {
+                .travel-block, .lodging-block, .activities-block, .day-poi-block, .day-route-block {
                     background-color: #FFFBF2;
                     border-radius: 16px;
                     padding: 14px 16px 16px;
@@ -1787,26 +1787,36 @@
                     gap: 10px;
                 }
 
-                /* BLOC 3 : Activités (la carte prend TOUT l'espace restant) */
+                /* BLOC 3 : Activités -- la carte s'ajuste désormais à son contenu (comme
+                   Transport/Logement/POI/Itinéraires) au lieu de forcer le reste de
+                   l'écran à disparaître derrière un scroll interne au textarea : c'est
+                   .day-detail-content (overflow-y:auto) qui absorbe le débordement, pas
+                   la carte elle-même. La hauteur du textarea suit son texte via JS
+                   (voir autoGrowTextarea, appelée sur "input" et à la restauration --
+                   même recette que #recap-days-stack .day-textarea plus bas). */
                 .activities-block {
-                    flex-grow: 1; /* C'est la clé : prend l'espace libre */
-                    flex-shrink: 1; /* Redéfini après le flex-shrink:0 partagé ci-dessus : seule cette carte doit pouvoir se réduire */
                     display: flex;
                     flex-direction: column;
-                    min-height: 100px; /* Hauteur minimale de sécurité */
                 }
                 .activities-block .day-textarea {
-                    flex: 1; /* Remplit le reste de la carte, sous le libellé */
-                    height: auto; /* Remplace le height:100% de base, qui ignorait la place prise par le libellé */
+                    height: auto;
+                    min-height: 90px; /* Hauteur minimale de confort, plutôt que de remplir tout l'espace restant */
+                    overflow: hidden; /* Pas de scroll interne : la hauteur suit le contenu */
                 }
 
-                /* POI de ce jour (intégrés depuis l'écran Carte) */
+                /* POI/itinéraires de ce jour (intégrés depuis l'écran Carte) -- cliquables :
+                   ouvrent l'écran Carte centré sur ce point/itinéraire précis (voir
+                   goToMapFromDayScreen). */
                 .day-poi-item {
                     background: rgba(38,70,83,.06);
                     border-radius: 12px;
                     padding: 10px 12px;
                     margin-bottom: 8px;
+                    cursor: pointer;
+                    transition: background .15s ease;
+                    -webkit-tap-highlight-color: transparent;
                 }
+                .day-poi-item:hover, .day-poi-item:active { background: rgba(38,70,83,.11); }
                 .day-poi-item:last-child { margin-bottom: 0; }
                 .day-poi-item-title {
                     font-family: var(--main-font);
@@ -2200,21 +2210,17 @@
                 user-select: none;
             }
 
-            /* .day-textarea a height:100% par défaut (pensé pour l'écran plein format
-               avec .activities-block en flex-grow:1). Dans le récap, le conteneur est
-               en hauteur automatique : on laisse donc le textarea s'ajuster à son texte
-               (la hauteur exacte est calculée en JS via scrollHeight à l'affichage). */
+            /* .day-textarea (le champ Activités) est déjà en height:auto sur l'écran
+               plein format (voir .activities-block .day-textarea) -- ici, seule la
+               hauteur minimale diffère (le récap empile beaucoup de jours, on reste plus
+               compact). La hauteur exacte suit le texte, calculée en JS via scrollHeight
+               à l'affichage (voir dayClone.querySelectorAll('.day-textarea') dans
+               openRecapScreen). */
             #recap-days-stack .day-textarea {
                 height: auto;
                 min-height: 60px;
                 overflow: hidden; /* Pas de barre de scroll, la hauteur suit le contenu */
             }
-            /* .activities-block .day-textarea (carte "Activités" du nouveau design) est en
-               flex:1 sur l'écran plein format, pour remplir la carte jusqu'en bas. Avec
-               flex:1 (flex-basis:0%), la hauteur fixée en JS via scrollHeight ci-dessus
-               serait ignorée par le calcul flex -- le texte se retrouvait tronqué sans
-               scroll visible dans le récap. On repasse en flex:none pour que le textarea
-               ne prenne QUE la hauteur donnée par le JS (son contenu réel). */
             #recap-days-stack .activities-block .day-textarea {
                 flex: none;
             }
@@ -2240,16 +2246,24 @@
                    sable mais la carte Leaflet -- un simple trait ne suffit plus à séparer
                    proprement le titre du contenu. */
                 #map-screen .day-detail-header {
-                    background: #FFFBF2;
+                    background: var(--couleur-fond-modal);
                     border-bottom: none;
                     box-shadow: 0 4px 10px rgba(38,70,83,.14);
                     position: relative;
                     z-index: 320;
                 }
-                #map-leaflet-container {
+                /* Repère de positionnement pour .map-instructions/.map-legend : ce sont
+                   ses enfants (et non plus ceux de #map-screen) pour que leur "top" se
+                   calcule juste sous le header au lieu de chevaucher tout #map-screen
+                   (qui, en position:fixed, formait leur ancien référentiel depuis y=0). */
+                .map-body {
+                    position: relative;
                     flex: 1;
-                    width: 100%;
                     min-height: 0; /* Important en flex pour que Leaflet calcule une vraie hauteur */
+                }
+                #map-leaflet-container {
+                    width: 100%;
+                    height: 100%;
                 }
                 /* --- Dock d'actions flottant, au-dessus de la carte --- */
                 /* Remplace l'ancienne pilule mint/teal plate par la même famille visuelle
@@ -2696,6 +2710,12 @@
                     align-items: center; /* Centrage horizontal du conteneur, comme demandé */
                     padding: 20px;
                     gap: 15px;
+                }
+                /* Vagues de pied d'écran : même motif que .dashboard-footer-wave, poussées
+                   en bas de l'écran (margin-top:auto) -- voir .finance-detail-content
+                   .dashboard-footer-wave, même recette. */
+                .docs-content .dashboard-footer-wave {
+                    margin-top: auto;
                 }
                 /* Entrée Checklist : tuile pleine dégradée + badge + chevron, même famille
                    que .btn-orga/.btn-map/... (écran voyage), au lieu d'un simple bouton
@@ -3363,17 +3383,21 @@
                     <h2 class="day-detail-title">Carte du voyage</h2>
                 </header>
 
-                <div id="map-leaflet-container"></div>
+                <!-- Repère de positionnement pour .map-instructions/.map-legend : placés
+                     juste sous le header (et non plus par rapport à tout #map-screen). -->
+                <div class="map-body">
+                    <div id="map-leaflet-container"></div>
 
-                <!-- Bandeau d'instructions, affiché pendant le placement d'un point/itinéraire -->
-                <div class="map-instructions" id="map-instructions"></div>
+                    <!-- Bandeau d'instructions, affiché pendant le placement d'un point/itinéraire -->
+                    <div class="map-instructions" id="map-instructions"></div>
 
-                <!-- Légende des couleurs par mode de transport -->
-                <div class="map-legend">
-                    <div class="map-legend-title">Modes</div>
-                    <div><span class="map-legend-dot" style="background:var(--map-color-car)"></span><span class="map-legend-label">Voiture</span></div>
-                    <div><span class="map-legend-dot" style="background:var(--map-color-bike)"></span><span class="map-legend-label">Vélo</span></div>
-                    <div><span class="map-legend-dot" style="background:var(--map-color-hiking)"></span><span class="map-legend-label">Randonnée</span></div>
+                    <!-- Légende des couleurs par mode de transport -->
+                    <div class="map-legend">
+                        <div class="map-legend-title">Modes</div>
+                        <div><span class="map-legend-dot" style="background:var(--map-color-car)"></span><span class="map-legend-label">Voiture</span></div>
+                        <div><span class="map-legend-dot" style="background:var(--map-color-bike)"></span><span class="map-legend-label">Vélo</span></div>
+                        <div><span class="map-legend-dot" style="background:var(--map-color-hiking)"></span><span class="map-legend-label">Randonnée</span></div>
+                    </div>
                 </div>
 
                 <!-- Barre d'outils flottante (dock d'icônes rondes, même famille que les
@@ -3451,12 +3475,15 @@
                 </div>
             </div>
 
-            <!-- Petite modale : mode + jour, avant de tracer un itinéraire -->
+            <!-- Petite modale : mode + jour (+ nom/commentaire), avant de tracer un
+                 itinéraire -- ou pour éditer le nom/commentaire d'un itinéraire existant
+                 (voir map-route-modal-title / map-route-delete, sur le même principe que
+                 map-poi-modal). -->
             <div id="map-route-modal" class="modal-overlay">
                 <div class="modal-content-add map-form-content">
                     <div class="modal-icon-head">
                         <span class="modal-icon-badge"><svg viewBox="0 0 24 24" fill="none"><path d="M4 19c4-1 3-7 8-7s3 6 8 7" stroke="#FFFBF2" stroke-width="2" stroke-linecap="round"/><circle cx="4" cy="19" r="1.6" fill="#FFFBF2"/><circle cx="20" cy="19" r="1.6" fill="#FFFBF2"/></svg></span>
-                        <h3>Nouvel itinéraire</h3>
+                        <h3 id="map-route-modal-title">Nouvel itinéraire</h3>
                     </div>
                     <p class="map-block-label">Mode de transport</p>
                     <div class="map-mode-choice">
@@ -3466,7 +3493,12 @@
                     </div>
                     <p class="map-block-label">Jour</p>
                     <div class="map-select-wrap"><select id="map-route-day"></select></div>
+                    <p class="map-block-label">Nom de l'itinéraire</p>
+                    <input type="text" id="map-route-label" placeholder="Nom de l'itinéraire" maxlength="40">
+                    <p class="map-block-label">Commentaire</p>
+                    <textarea id="map-route-comment" placeholder="Optionnel..." maxlength="300" rows="3"></textarea>
                     <div class="nav-buttons">
+                        <button type="button" id="map-route-delete" style="display:none;background:#e5484d;color:white;">Supprimer</button>
                         <button type="button" id="map-route-cancel">Annuler</button>
                         <button type="button" id="map-route-start">
                             <svg viewBox="0 0 24 24" fill="none"><path d="M4 19c4-1 3-7 8-7s3 6 8 7" stroke="#FFFBF2" stroke-width="2" stroke-linecap="round"/></svg>
@@ -3520,6 +3552,24 @@
                     <div class="docs-list" id="docs-list"></div>
 
                     <button type="button" class="docs-add-btn" id="docs-add-btn"><span class="docs-add-plus">+</span> Ajouter un document</button>
+
+                    <!-- Vagues de pied d'écran, même motif que le dashboard/finances (purement décoratif) -->
+                    <svg class="dashboard-footer-wave" viewBox="0 0 336 100" preserveAspectRatio="none" aria-hidden="true">
+                        <defs>
+                            <linearGradient id="footerWaveFrontDocs" x1="0" y1="0" x2="1" y2="0">
+                                <stop offset="0%" stop-color="#3E8079"/>
+                                <stop offset="45%" stop-color="#C97C4A"/>
+                                <stop offset="100%" stop-color="#F7A93E"/>
+                            </linearGradient>
+                        </defs>
+                        <path d="M0,58 C110,32 220,32 336,52 L336,100 L0,100 Z" fill="#1B3E5C" opacity="0.85"/>
+                        <path d="M0,38 C60,16 120,54 200,46 C258,40 300,54 336,50 L336,100 L0,100 Z" fill="#2E6E6B"/>
+                        <path d="M0,38 C60,16 120,54 200,46 C258,40 300,54 336,50" fill="none" stroke="#1B3A3D" stroke-width="1.4" opacity="0.5"/>
+                        <path d="M0,62 C85,74 145,20 232,25 C280,28 312,45 336,42 L336,100 L0,100 Z" fill="#AFCFC8"/>
+                        <path d="M0,62 C85,74 145,20 232,25 C280,28 312,45 336,42" fill="none" stroke="#6E9490" stroke-width="1.2" opacity="0.55"/>
+                        <path d="M0,74 C92,88 162,42 242,44 C282,45 312,60 336,56 L336,100 L0,100 Z" fill="url(#footerWaveFrontDocs)"/>
+                        <path d="M0,74 C92,88 162,42 242,44 C282,45 312,60 336,56" fill="none" stroke="#7A4A22" stroke-width="1.2" opacity="0.4"/>
+                    </svg>
                 </div>
             </div>
 
@@ -5409,6 +5459,7 @@
                                         // ne recopie ni les écouteurs ni les données chargées après coup, et
                                         // le template généré pour un jour jamais ouvert n'en contient aucun.
                                         loadDayPois(tripId, day, dayClone);
+                                        loadDayRoutes(tripId, day, dayClone);
 
                                         // E. Ajuster la hauteur de chaque textarea à son contenu réel
                                         // (scrollHeight n'est fiable qu'une fois l'élément dans le DOM visible)
@@ -5480,6 +5531,11 @@
                                             <div class="day-poi-block">
                                                 <div class="day-block-label"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 21s-6-5-6-10a6 6 0 0112 0c0 5-6 10-6 10z" stroke="#2E7D7A" stroke-width="2"/><circle cx="12" cy="11" r="2.2" stroke="#2E7D7A" stroke-width="2"/></svg>Points d'intérêt de ce jour</div>
                                                 <div class="day-poi-list" data-day-poi="${dayId}"></div>
+                                            </div>
+
+                                            <div class="day-route-block">
+                                                <div class="day-block-label"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 19c4-1 3-7 8-7s3 6 8 7" stroke="#2E7D7A" stroke-width="2" stroke-linecap="round"/><circle cx="4" cy="19" r="1.6" fill="#2E7D7A"/><circle cx="20" cy="19" r="1.6" fill="#2E7D7A"/></svg>Itinéraires de ce jour</div>
+                                                <div class="day-route-list" data-day-route="${dayId}"></div>
                                             </div>
                                         </div>
                                     `;
@@ -5602,6 +5658,7 @@
                 // Couleur par mode de transport (correspond aux variables CSS --map-color-*)
                 const MAP_MODE_COLORS = { car: '#3b82f6', bike: '#22c55e', hiking: '#f97316' };
                 const MAP_MODE_LABELS = { car: 'Voiture', bike: 'Vélo', hiking: 'Randonnée' };
+                const MAP_MODE_EMOJI = { car: '🚗', bike: '🚲', hiking: '🥾' };
                 // Catégories de points d'intérêt (icône affichée dans le marqueur + popup)
                 const MAP_POI_TYPES = {
                     restaurant:  { emoji: '🍽️', label: 'Restaurant' },
@@ -5624,6 +5681,9 @@
                 let mapTempLayer = null;       // Calque temporaire (aperçu du tracé en cours)
                 let mapPendingPoiLatLng = null;
                 let mapEditingPoiId = null;    // id du POI en cours d'édition, null si on est en création
+                let mapEditingRouteId = null;  // id de l'itinéraire en cours d'édition, null si on est en création
+                let mapPendingRouteLabel = ''; // Nom/commentaire saisis dans la modale, mémorisés le temps du tracé
+                let mapPendingRouteComment = '';
 
                 // Données brutes en mémoire (permet de refiltrer sans re-télécharger)
                 let mapAllPois = [];
@@ -5678,7 +5738,11 @@
                 }
 
                 // --- Ouverture de l'écran carte pour un voyage donné ---
-                async function openMapScreen(tripId) {
+                // `focusTarget` (optionnel) : { type: 'poi'|'route', id } -- centre la carte
+                // sur ce point/itinéraire et ouvre son popup dès que les données sont
+                // chargées (voir focusMapTarget). Utilisé depuis les listes POI/itinéraires
+                // de day-detail-screen (goToMapFromDayScreen).
+                async function openMapScreen(tripId, focusTarget) {
                     mapCurrentTripId = tripId;
                     const trip = cloudTrips.find(t => t.id === tripId);
                     if (!trip) return;
@@ -5725,6 +5789,31 @@
                     setTimeout(() => mapInstance.invalidateSize(), 250);
 
                     await loadMapData(tripId, trip.duration);
+
+                    if (focusTarget) {
+                        // Laisse invalidateSize() (250ms plus haut) recalculer la taille du
+                        // conteneur avant de centrer/ouvrir le popup, sous peine d'un
+                        // positionnement faux.
+                        setTimeout(() => focusMapTarget(focusTarget), 300);
+                    }
+                }
+
+                // Centre la carte sur un point/itinéraire précis et ouvre son popup --
+                // voir openMapScreen(tripId, focusTarget).
+                function focusMapTarget(focusTarget) {
+                    if (focusTarget.type === 'poi') {
+                        const poi = mapAllPois.find(p => p.id === focusTarget.id);
+                        const marker = mapPoiMarkers[focusTarget.id];
+                        if (!poi || !marker) return;
+                        mapInstance.setView([poi.lat, poi.lng], Math.max(mapInstance.getZoom(), 14));
+                        marker.openPopup();
+                    } else if (focusTarget.type === 'route') {
+                        const route = mapAllRoutes.find(r => r.id === focusTarget.id);
+                        const layer = mapRouteLeafletLayers[focusTarget.id];
+                        if (!route || !layer) return;
+                        mapInstance.fitBounds(layer.getBounds(), { padding: [40, 40] });
+                        layer.openPopup();
+                    }
                 }
 
                 function closeMapScreen() {
@@ -5739,6 +5828,9 @@
                     mapPendingMode = null;
                     mapPendingPoiLatLng = null;
                     mapEditingPoiId = null;
+                    mapEditingRouteId = null;
+                    mapPendingRouteLabel = '';
+                    mapPendingRouteComment = '';
                     if (mapTempLayer) { mapTempLayer.clearLayers(); }
                     setMapInstructions('');
                 }
@@ -5830,8 +5922,16 @@
 
                     const popupDiv = document.createElement('div');
                     popupDiv.className = 'map-poi-popup';
-                    popupDiv.innerHTML = `<div class="map-poi-popup-title">${MAP_MODE_LABELS[route.mode] || route.mode}</div>
-                        <div class="map-poi-popup-day">Jour ${route.dayId}</div>`;
+                    popupDiv.innerHTML = `
+                        <div class="map-poi-popup-title">${route.label || MAP_MODE_LABELS[route.mode] || route.mode}</div>
+                        <div class="map-poi-popup-day">Jour ${route.dayId}</div>
+                        ${route.comment ? `<div class="map-poi-popup-comment">${route.comment.replace(/</g, '&lt;')}</div>` : ''}
+                    `;
+                    const editBtn = document.createElement('button');
+                    editBtn.className = 'map-poi-popup-edit';
+                    editBtn.textContent = 'Modifier';
+                    editBtn.addEventListener('click', () => openRouteModalForEdit(route));
+                    popupDiv.appendChild(editBtn);
 
                     if (route.mode === 'hiking') {
                         const gpxBtn = document.createElement('button');
@@ -5935,6 +6035,27 @@
                     mapInstance.closePopup();
                 }
 
+                // Ouvre la modale itinéraire pré-remplie, pour éditer le nom/commentaire/
+                // mode/jour d'un itinéraire existant -- le tracé (waypoints) lui, ne se
+                // redessine pas : on ne touche qu'aux métadonnées, comme pour un POI.
+                function openRouteModalForEdit(route) {
+                    mapEditingRouteId = route.id;
+                    const trip = cloudTrips.find(t => t.id === mapCurrentTripId);
+                    populateDaySelect(document.getElementById('map-route-day'), trip?.duration || 1);
+                    document.getElementById('map-route-day').value = route.dayId;
+                    document.querySelectorAll('.map-mode-choice button').forEach(b => {
+                        b.classList.toggle('map-mode-selected', b.dataset.mode === route.mode);
+                    });
+                    mapPendingMode = route.mode;
+                    document.getElementById('map-route-label').value = route.label || '';
+                    document.getElementById('map-route-comment').value = route.comment || '';
+                    document.getElementById('map-route-modal-title').textContent = "Modifier l'itinéraire";
+                    document.getElementById('map-route-delete').style.display = '';
+                    document.getElementById('map-route-start').innerHTML = 'Enregistrer';
+                    document.getElementById('map-route-modal').classList.add('active');
+                    mapInstance.closePopup();
+                }
+
                 // --- Câblage des boutons de la barre d'outils et des modales ---
                 document.addEventListener('DOMContentLoaded', () => {
                     document.getElementById('btn-map-back')?.addEventListener('click', closeMapScreen);
@@ -5999,10 +6120,16 @@
 
                     // -- Tracé d'un itinéraire --
                     document.getElementById('map-btn-add-route')?.addEventListener('click', () => {
+                        mapEditingRouteId = null;
                         mapPendingMode = null;
                         document.querySelectorAll('.map-mode-choice button').forEach(b => b.classList.remove('map-mode-selected'));
                         const trip = cloudTrips.find(t => t.id === mapCurrentTripId);
                         populateDaySelect(document.getElementById('map-route-day'), trip?.duration || 1);
+                        document.getElementById('map-route-label').value = '';
+                        document.getElementById('map-route-comment').value = '';
+                        document.getElementById('map-route-modal-title').textContent = 'Nouvel itinéraire';
+                        document.getElementById('map-route-delete').style.display = 'none';
+                        document.getElementById('map-route-start').innerHTML = '<svg viewBox="0 0 24 24" fill="none"><path d="M4 19c4-1 3-7 8-7s3 6 8 7" stroke="#FFFBF2" stroke-width="2" stroke-linecap="round"/></svg>Commencer le tracé';
                         document.getElementById('map-route-modal').classList.add('active');
                     });
                     document.querySelectorAll('.map-mode-choice button').forEach((btn) => {
@@ -6014,16 +6141,54 @@
                     });
                     document.getElementById('map-route-cancel')?.addEventListener('click', () => {
                         document.getElementById('map-route-modal').classList.remove('active');
+                        resetMapDrawingState();
                     });
-                    document.getElementById('map-route-start')?.addEventListener('click', () => {
+                    // Un seul bouton "map-route-start" pour les deux cas : création (lance le
+                    // tracé au clic sur la carte) et édition (enregistre juste les métadonnées,
+                    // le tracé existant n'est pas retouché) -- distingués via mapEditingRouteId,
+                    // comme map-poi-confirm le fait pour mapEditingPoiId.
+                    document.getElementById('map-route-start')?.addEventListener('click', async () => {
                         if (!mapPendingMode) { alert('Choisis un mode de transport.'); return; }
+                        const dayId = Number(document.getElementById('map-route-day').value);
+                        const label = document.getElementById('map-route-label').value.trim();
+                        const comment = document.getElementById('map-route-comment').value.trim();
+
+                        if (mapEditingRouteId) {
+                            document.getElementById('map-route-modal').classList.remove('active');
+                            try {
+                                const updated = await apiRequest('PUT', `/trips/${mapCurrentTripId}/routes/${mapEditingRouteId}`, { dayId, mode: mapPendingMode, label, comment });
+                                const idx = mapAllRoutes.findIndex(r => r.id === mapEditingRouteId);
+                                if (idx !== -1) mapAllRoutes[idx] = updated;
+                                renderAllMapData();
+                            } catch (e) {
+                                alert("Impossible d'enregistrer cet itinéraire.");
+                            }
+                            resetMapDrawingState();
+                            return;
+                        }
+
                         document.getElementById('map-route-modal').classList.remove('active');
                         mapClickMode = 'picking-route';
                         mapPendingWaypoints = [];
+                        mapPendingRouteLabel = label;
+                        mapPendingRouteComment = comment;
                         // Le jour choisi est mémorisé le temps du tracé (via un attribut sur le bouton Valider)
-                        document.getElementById('map-btn-validate-route').dataset.dayId = document.getElementById('map-route-day').value;
+                        document.getElementById('map-btn-validate-route').dataset.dayId = dayId;
                         setMapToolbarState('drawing-route');
                         setMapInstructions(`Touche la carte pour ajouter des points de l'itinéraire (${MAP_MODE_LABELS[mapPendingMode]}), puis valide.`);
+                    });
+                    document.getElementById('map-route-delete')?.addEventListener('click', async () => {
+                        if (!mapEditingRouteId) return;
+                        try {
+                            await apiRequest('DELETE', `/trips/${mapCurrentTripId}/routes/${mapEditingRouteId}`);
+                            const layer = mapRouteLeafletLayers[mapEditingRouteId];
+                            if (layer) mapRouteLayer.removeLayer(layer);
+                            mapAllRoutes = mapAllRoutes.filter(r => r.id !== mapEditingRouteId);
+                        } catch (e) {
+                            alert("Échec de la suppression.");
+                        }
+                        document.getElementById('map-route-modal').classList.remove('active');
+                        resetMapDrawingState();
                     });
                     document.getElementById('map-btn-cancel-route')?.addEventListener('click', () => {
                         resetMapDrawingState();
@@ -6037,7 +6202,8 @@
                         const dayId = Number(document.getElementById('map-btn-validate-route').dataset.dayId);
                         try {
                             const route = await apiRequest('POST', `/trips/${mapCurrentTripId}/routes`, {
-                                dayId, mode: mapPendingMode, waypoints: mapPendingWaypoints
+                                dayId, mode: mapPendingMode, waypoints: mapPendingWaypoints,
+                                label: mapPendingRouteLabel, comment: mapPendingRouteComment
                             });
                             mapAllRoutes.push(route);
                             if (routePassesFilter(route)) renderRoute(route);
@@ -6399,9 +6565,28 @@
                     return `${shortDay} ${dd}/${mm}`;
                 }
 
+                // Bascule vers l'écran Carte, centré sur un point/itinéraire précis, depuis
+                // une liste POI/itinéraires de day-detail-screen -- masque au passage
+                // l'écran (réel ou clone du récap) d'où vient le clic, comme le ferait son
+                // propre bouton retour.
+                function goToMapFromDayScreen(tripId, focusTarget, screen) {
+                    if (screen?.closest('#recap-days-stack')) {
+                        const recapScreen = document.getElementById('recap-trip-screen');
+                        if (recapScreen) {
+                            recapScreen.classList.remove('active');
+                            recapScreen.style.display = 'none';
+                        }
+                    } else {
+                        screen?.classList.remove('active');
+                    }
+                    openMapScreen(tripId, focusTarget);
+                }
+
                 // Affiche les points d'intérêt tagués sur un jour donné, directement dans
                 // son day-detail-screen (en plus de l'écran Carte). Lecture seule ici :
-                // l'édition complète reste sur la carte, pour ne pas dupliquer ce workflow.
+                // l'édition complète reste sur la carte, pour ne pas dupliquer ce workflow --
+                // chaque point reste cliquable pour y accéder directement (voir
+                // goToMapFromDayScreen).
                 // `containerEl` permet de cibler un autre conteneur que l'écran réel du jour
                 // (ex: le clone affiché dans le récap du voyage).
                 async function loadDayPois(tripId, dayId, containerEl) {
@@ -6427,11 +6612,56 @@
                                 <div class="day-poi-item-title">${typeInfo.emoji} ${poi.label || typeInfo.label}</div>
                                 ${poi.comment ? `<div class="day-poi-item-comment">${poi.comment.replace(/</g, '&lt;')}</div>` : ''}
                             `;
+                            item.addEventListener('click', () => goToMapFromDayScreen(tripId, { type: 'poi', id: poi.id }, screen));
                             listEl.appendChild(item);
                         });
                     } catch (e) {
                         listEl.innerHTML = '<p style="font-size:13px;color:#888;">Impossible de charger les points d\u2019intérêt.</p>';
                     }
+                }
+
+                // Même principe que loadDayPois, pour les itinéraires (map-route) tagués sur
+                // ce jour -- voir .day-poi-block/.day-route-block dans le template du jour.
+                async function loadDayRoutes(tripId, dayId, containerEl) {
+                    const screen = containerEl || document.getElementById(`screen-${tripId}-${dayId}`);
+                    if (!screen) return;
+                    const listEl = screen.querySelector(`.day-route-list[data-day-route="${dayId}"]`);
+                    if (!listEl) return;
+                    listEl.innerHTML = '<p style="font-size:13px;color:#888;">Chargement...</p>';
+
+                    try {
+                        const routes = await apiRequest('GET', `/trips/${tripId}/routes`);
+                        const dayRoutes = (routes || []).filter(r => r.dayId === dayId);
+                        listEl.innerHTML = '';
+                        if (dayRoutes.length === 0) {
+                            listEl.innerHTML = '<p style="font-size:13px;color:#888;">Aucun itinéraire sur ce jour pour l’instant.</p>';
+                            return;
+                        }
+                        dayRoutes.forEach((route) => {
+                            const emoji = (typeof MAP_MODE_EMOJI !== 'undefined' && MAP_MODE_EMOJI[route.mode]) || '🧭';
+                            const modeLabel = (typeof MAP_MODE_LABELS !== 'undefined' && MAP_MODE_LABELS[route.mode]) || route.mode;
+                            const item = document.createElement('div');
+                            item.className = 'day-poi-item';
+                            item.innerHTML = `
+                                <div class="day-poi-item-title">${emoji} ${route.label || modeLabel}</div>
+                                ${route.comment ? `<div class="day-poi-item-comment">${route.comment.replace(/</g, '&lt;')}</div>` : ''}
+                            `;
+                            item.addEventListener('click', () => goToMapFromDayScreen(tripId, { type: 'route', id: route.id }, screen));
+                            listEl.appendChild(item);
+                        });
+                    } catch (e) {
+                        listEl.innerHTML = '<p style="font-size:13px;color:#888;">Impossible de charger les itinéraires.</p>';
+                    }
+                }
+
+                // Ajuste la hauteur d'un <textarea> à son contenu réel (pas de scroll
+                // interne) -- même recette que le post-traitement déjà fait sur le clone
+                // en lecture seule du récap (voir dayClone.querySelectorAll('.day-textarea')
+                // dans openRecapScreen), mais ici appelée à chaque frappe pour que le champ
+                // Activités grandisse en direct pendant la saisie.
+                function autoGrowTextarea(ta) {
+                    ta.style.height = 'auto';
+                    ta.style.height = `${ta.scrollHeight}px`;
                 }
 
                 function openDayOrgaScreen(tripId, dayId, tripName, maxDays) { // Définit la fonction recevant l'ID voyage et le Jour
@@ -6493,6 +6723,11 @@
                                     <div class="day-poi-list" data-day-poi="${dayId}"></div>
                                 </div>
 
+                                <div class="day-route-block">
+                                    <div class="day-block-label"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 19c4-1 3-7 8-7s3 6 8 7" stroke="#2E7D7A" stroke-width="2" stroke-linecap="round"/><circle cx="4" cy="19" r="1.6" fill="#2E7D7A"/><circle cx="20" cy="19" r="1.6" fill="#2E7D7A"/></svg>Itinéraires de ce jour</div>
+                                    <div class="day-route-list" data-day-route="${dayId}"></div>
+                                </div>
+
                                 <div class="nav-buttons">
                                     <!-- Utilisation de classes au lieu d'IDs uniques pour la navigation -->
                                     <!-- Classe 'btn-prev' requise -->
@@ -6532,6 +6767,11 @@
                             if (input.tagName === 'SELECT') {
                                 input.addEventListener('change', collectAndSave);
                             }
+                            // Champ Activités : grandit avec son contenu au lieu de scroller
+                            // en interne (voir autoGrowTextarea / .activities-block .day-textarea).
+                            if (input.tagName === 'TEXTAREA') {
+                                input.addEventListener('input', () => autoGrowTextarea(input));
+                            }
                         });
 
                         // 4. Chargement des données (Restauration)
@@ -6543,7 +6783,10 @@
                                 }
                             });
                         }
-                        
+                        // Ajuste la hauteur du champ Activités à son contenu restauré (ou au
+                        // minimum défini en CSS s'il est vide) dès l'affichage de l'écran.
+                        screen.querySelectorAll('.day-textarea').forEach(autoGrowTextarea);
+
                         // --- FIN DU BLOC ÉCOUTEURS POUR LES SAUVEGARDES ---
                         
                         // Ecouteurs d'événements pour les boutons de cet écran spécifique
@@ -6562,6 +6805,7 @@
 
                     // Affiche les points d'intérêt tagués sur ce jour précis (voir écran Carte)
                     loadDayPois(tripId, dayId);
+                    loadDayRoutes(tripId, dayId);
 
                         // --- GESTION NAVIGATION ---
                         screen.addEventListener('click', (e) => {
