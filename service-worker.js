@@ -42,8 +42,11 @@ const STATIC_ASSETS = [
 
 // --- INSTALL : met en cache l'app shell ---
 self.addEventListener('install', (event) => {
+    // Empêche le SW de s'activer tant que le cache n'est pas prêt
     event.waitUntil(
+        // Ouvre (ou crée) le cache nommé
         caches.open(CACHE_NAME)
+            // Télécharge et met en cache tous les fichiers de l'app shell
             .then((cache) => cache.addAll(STATIC_ASSETS))
             .then(() => self.skipWaiting()) // Active le nouveau SW immédiatement, sans attendre la fermeture de tous les onglets
     );
@@ -51,10 +54,15 @@ self.addEventListener('install', (event) => {
 
 // --- ACTIVATE : supprime les anciens caches (ex: holyplanner-static-v0) ---
 self.addEventListener('activate', (event) => {
+    // Empêche l'activation tant que le nettoyage n'est pas terminé
     event.waitUntil(
+        // Liste tous les caches existants (anciennes versions incluses)
         caches.keys()
+            // Supprime ceux qui ne correspondent plus au cache actuel
             .then((keys) => Promise.all(
+                // Ne garde que les anciens caches
                 keys.filter((key) => key !== CACHE_NAME)
+                    // Supprime chacun d'eux
                     .map((key) => caches.delete(key))
             ))
             .then(() => self.clients.claim()) // Prend le contrôle des onglets déjà ouverts sans avoir besoin de recharger
@@ -63,8 +71,8 @@ self.addEventListener('activate', (event) => {
 
 // --- FETCH : répartit entre API (réseau uniquement) et app shell (stale-while-revalidate) ---
 self.addEventListener('fetch', (event) => {
-    const { request } = event;
-    const url = new URL(request.url);
+    const { request } = event; // Requête interceptée
+    const url = new URL(request.url); // URL de la requête, décomposée
 
     // 0. Ignore tout ce qui n'est pas http(s) (ex: chrome-extension://, générées
     //    par des extensions du navigateur qui interceptent aussi la page).
@@ -72,12 +80,12 @@ self.addEventListener('fetch', (event) => {
     //    filtre, cache.put() plantait sur ces requêtes avec "Request scheme
     //    'chrome-extension' is unsupported".
     if (!url.protocol.startsWith('http')) {
-        return;
+        return; // Laisse passer sans y toucher (pas de respondWith)
     }
     // 1. Appels vers l'API cloud : toujours le réseau, jamais le cache.
     if (url.href.startsWith(API_BASE_URL)) {
-        event.respondWith(fetch(request));
-        return;
+        event.respondWith(fetch(request)); // Répond directement depuis le réseau, sans passer par le cache
+        return; // Rien d'autre à faire pour une requête API
     }
 
     // 2. Tout le reste (app shell statique) : "stale-while-revalidate", pas un
@@ -87,9 +95,9 @@ self.addEventListener('fetch', (event) => {
         return; // Laisse la requête suivre son cours normalement (pas de respondWith)
     }
 
-    event.respondWith(
-        caches.open(CACHE_NAME).then(async (cache) => {
-            const cachedResponse = await cache.match(request);
+    event.respondWith( // Prend le contrôle de la réponse
+        caches.open(CACHE_NAME).then(async (cache) => { // Ouvre le cache
+            const cachedResponse = await cache.match(request); // Cherche si cette requête est déjà en cache
 
             // Lance TOUJOURS une requête réseau en parallèle pour rafraîchir le cache,
             // même si une version en cache existe déjà -- c'est ça, le "revalidate".
@@ -100,17 +108,17 @@ self.addEventListener('fetch', (event) => {
             // corrige tout seul en arrière-plan, et la VISITE SUIVANTE profite déjà des
             // fichiers à jour -- sans jamais bloquer l'affichage de la visite en cours.
             const networkFetch = fetch(request).then((networkResponse) => {
-                if (networkResponse && networkResponse.ok) {
-                    cache.put(request, networkResponse.clone());
+                if (networkResponse && networkResponse.ok) { // Ne met en cache qu'une réponse valide
+                    cache.put(request, networkResponse.clone()); // Met à jour le cache pour la prochaine visite
                 }
-                return networkResponse;
-            }).catch(() => {
+                return networkResponse; // Renvoie la réponse réseau
+            }).catch(() => { // Aucun réseau disponible
                 // Pas de réseau : silencieux si on avait déjà servi le cache, sinon on
                 // le signale (ex: 1ère visite hors-ligne, rien à servir du tout).
                 if (!cachedResponse) {
-                    console.warn('Ressource indisponible hors-ligne :', request.url);
+                    console.warn('Ressource indisponible hors-ligne :', request.url); // Avertit en console : ni cache ni réseau disponibles
                 }
-                return null;
+                return null; // Rien à renvoyer dans ce cas
             });
 
             // Sert le cache immédiatement s'il existe (rapide + fonctionne hors-ligne) ;
